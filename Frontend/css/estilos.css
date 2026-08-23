@@ -8,30 +8,23 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f8f9fa;
+  /* Utilizamos las variables nativas de Bootstrap para adaptar el fondo al tema */
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
 }
 
 main {
   flex: 1;
 }
 
-/* Cards de cursos */
+/* Tarjetas de cursos */
 .card-course {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card-course:hover {
   transform: translateY(-4px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  /* Adaptamos la sombra para que se vea bien en ambos temas */
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
 }
 
-/* Estilo para cursos destacados (Usuarios PRO) */
-.card-pro {
-  border: 2px solid var(--pro-badge-bg);
-}
-
-.badge-pro {
-  background-color: var(--pro-badge-bg);
-  color: #212529;
-  font-weight: bold;
-}
