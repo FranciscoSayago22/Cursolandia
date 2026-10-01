@@ -1,61 +1,17 @@
-<!DOCTYPE html>
-<html lang="es" data-bs-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cursolandia.com | Aprende y Enseña</title>
+<?php 
+// No definimos $clase_body porque el index usa el body por defecto
+include 'includes/encabezado.php'; 
+?>
 
-  <!-- Bootstrap 5 CSS CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <!-- Estilos propios -->
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-
-  <!-- NAVBAR -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
-    <div class="container">
-      <a class="navbar-brand fw-bold text-primary" href="index.html">
-        <i class="bi bi-mortarboard-fill me-1"></i>Cursolandia
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Menu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="index.html">Explorar Cursos</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Planes (Gratis vs PRO)</a>
-          </li>
-        </ul>
-
-        <!-- Acceso / Autenticación y Botón de Tema -->
-        <div class="d-flex gap-2 align-items-center">
-          <a href="#" class="btn btn-outline-light btn-sm">Iniciar Sesión</a>
-          <a href="registro.html" class="btn btn-primary btn-sm">Registrarse</a>
-          <!-- Botón de Modo Oscuro/Claro -->
-          <button id="themeToggle" class="btn btn-outline-secondary btn-sm ms-2" title="Cambiar tema">
-            <i class="bi bi-moon-fill"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- MAIN CONTENT -->
+  
   <main>
-    <!-- HERO SECTION -->
+    
     <header class="bg-primary text-white py-5 mb-4 shadow-sm">
       <div class="container text-center py-3">
         <h1 class="display-5 fw-bold">Comunidad de Aprendizaje Colaborativo</h1>
         <p class="lead mx-auto col-lg-8">Crea tus propios cursos, capacítate con otros usuarios y participa en foros de debate.</p>
         
-        <!-- BUSCADOR PRINCIPAL -->
+        
         <div class="row justify-content-center mt-4">
           <div class="col-md-8 col-lg-6">
             <form action="#" method="GET" class="input-group">
@@ -81,7 +37,6 @@
         <div class="row g-4">
           <!-- Tarjeta de Curso PRO (Gratuito) -->
           <div class="col-md-6 col-lg-4">
-            <!-- Aplicamos border-warning border-2 para destacar el curso PRO -->
             <div class="card h-100 card-course border-warning border-2 shadow-sm bg-body-tertiary">
               <img src="https://placehold.co/600x300/495057/ffffff?text=Web+Full+Stack" class="card-img-top object-fit-cover" alt="Portada del curso" height="160">
               
@@ -90,20 +45,17 @@
                 <p class="card-text text-muted small flex-grow-1">
                   Aprende arquitectura web, bases de datos y desarrollo backend desde cero con buenas prácticas.
                 </p>
-                
                 <div class="mb-3">
                   <span class="badge bg-secondary-subtle text-secondary-emphasis border">#web</span>
                   <span class="badge bg-secondary-subtle text-secondary-emphasis border">#programacion</span>
                   <span class="badge bg-secondary-subtle text-secondary-emphasis border">#php</span>
                 </div>
                 
-                <!-- Avatar del Creador -->
                 <div class="d-flex align-items-center mb-3">
                   <img src="https://placehold.co/100x100/adb5bd/ffffff?text=L" class="rounded-circle me-2 object-fit-cover" alt="Avatar del creador" width="32" height="32">
                   <small class="text-body-secondary fw-medium">Prof. Laura Méndez</small>
                 </div>
                 
-                <!-- Info base: Fecha, Cupo y Etiquetas (movidas abajo) -->
                 <div class="d-flex flex-wrap justify-content-between align-items-center small text-muted border-top border-secondary-subtle pt-3 mt-auto gap-2">
                   <div class="d-flex gap-3">
                     <span title="Fecha"><i class="bi bi-calendar-event me-1 text-primary"></i>01/09 - 30/11</span>
@@ -115,11 +67,8 @@
                   </div>
                 </div>
               </div>
-              
               <div class="card-footer bg-transparent border-0 pt-0 pb-3 mt-2">
-                <a href="#" class="btn btn-primary w-100 fw-medium">
-                  <i class="bi bi-eye-fill me-1"></i> Ver Detalle
-                </a>
+                <a href="#" class="btn btn-primary w-100 fw-medium"><i class="bi bi-eye-fill me-1"></i> Ver Detalle</a>
               </div>
             </div>
           </div>
@@ -134,7 +83,6 @@
                 <p class="card-text text-muted small flex-grow-1">
                   Modelado relacional, normalización (3FN), integridad referencial y consultas avanzadas en MySQL.
                 </p>
-                
                 <div class="mb-3">
                   <span class="badge bg-secondary-subtle text-secondary-emphasis border">#sql</span>
                   <span class="badge bg-secondary-subtle text-secondary-emphasis border">#mysql</span>
@@ -157,11 +105,8 @@
                   </div>
                 </div>
               </div>
-              
               <div class="card-footer bg-transparent border-0 pt-0 pb-3 mt-2">
-                <a href="#" class="btn btn-primary w-100 fw-medium">
-                  <i class="bi bi-eye-fill me-1"></i> Ver Detalle
-                </a>
+                <a href="#" class="btn btn-primary w-100 fw-medium"><i class="bi bi-eye-fill me-1"></i> Ver Detalle</a>
               </div>
             </div>
           </div>
@@ -172,10 +117,8 @@
       <section>
         <h2 class="h4 mb-3 fw-bold">Todos los Cursos</h2>
         <div class="row g-4">
-          
           <!-- Tarjeta Regular -->
           <div class="col-md-6 col-lg-4">
-            <!-- Restauramos un borde sutil (border border-secondary-subtle) para que se vea en modo claro -->
             <div class="card h-100 card-course shadow-sm border border-secondary-subtle bg-body-tertiary">
               <img src="https://placehold.co/600x300/495057/ffffff?text=L%C3%B3gica+de+Programaci%C3%B3n" class="card-img-top object-fit-cover" alt="Portada del curso" height="160">
               
@@ -184,7 +127,6 @@
                 <p class="card-text text-muted small flex-grow-1">
                   Conceptos iniciales, algoritmos, diagramas de flujo y resolución de problemas estructurados paso a paso.
                 </p>
-                
                 <div class="mb-3">
                   <span class="badge bg-secondary-subtle text-secondary-emphasis border">#logica</span>
                   <span class="badge bg-secondary-subtle text-secondary-emphasis border">#algoritmos</span>
@@ -206,53 +148,15 @@
                   </div>
                 </div>
               </div>
-              
               <div class="card-footer bg-transparent border-0 pt-0 pb-3 mt-2">
-                <a href="#" class="btn btn-primary w-100 fw-medium">
-                  <i class="bi bi-eye-fill me-1"></i> Ver Detalle
-                </a>
+                <a href="#" class="btn btn-primary w-100 fw-medium"><i class="bi bi-eye-fill me-1"></i> Ver Detalle</a>
               </div>
             </div>
           </div>
-          
         </div>
       </section>
       
     </div>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="bg-dark text-light py-4 mt-auto border-top">
-    <div class="container text-center small">
-      <p class="mb-1 fw-semibold">Cursolandia.com &copy; 2026 - Plataforma de Aprendizaje</p>
-      <p class="text-muted mb-0">Tecnicatura Universitaria en Web | Ingeniería de Software & Programación III</p>
-    </div>
-  </footer>
-
-  <!-- Bootstrap 5 JS Bundle CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <!-- SCRIPT PARA EL MODO CLARO/OSCURO -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const toggleBtn = document.getElementById('themeToggle');
-      const htmlElement = document.documentElement;
-      const icon = toggleBtn.querySelector('i');
-
-      toggleBtn.addEventListener('click', () => {
-        const currentTheme = htmlElement.getAttribute('data-bs-theme');
-        
-        if (currentTheme === 'light') {
-          htmlElement.setAttribute('data-bs-theme', 'dark');
-          icon.classList.replace('bi-moon-fill', 'bi-sun-fill');
-          toggleBtn.classList.replace('btn-outline-secondary', 'btn-outline-warning');
-        } else {
-          htmlElement.setAttribute('data-bs-theme', 'light');
-          icon.classList.replace('bi-sun-fill', 'bi-moon-fill');
-          toggleBtn.classList.replace('btn-outline-warning', 'btn-outline-secondary');
-        }
-      });
-    });
-  </script>
-</body>
-</html>
+<?php include 'includes/pie.php'; ?>
