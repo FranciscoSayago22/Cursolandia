@@ -1,3 +1,9 @@
+<?php
+// Iniciar la sesión si aún no está activa
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?>
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="light">
 <head>
@@ -33,12 +39,38 @@
           </li>
         </ul>
 
-        <!-- Acceso / Autenticación y Botón de Tema -->
-        <div class="d-flex gap-2 align-items-center">
-          <a href="#" class="btn btn-outline-light btn-sm">Iniciar Sesión</a>
-          <a href="registro.php" class="btn btn-primary btn-sm">Registrarse</a>
+        <!-- Acceso, Autenticación y Avatar -->
+        <div class="d-flex gap-3 align-items-center">
+          
+          <?php if (isset($_SESSION['usuario_id'])): ?>
+            <!-- Usuario Logueado: Dropdown con Avatar -->
+            <div class="dropdown">
+              <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                <?php if (!empty($_SESSION['imagen_perfil'])): ?>
+                  <!-- Carga la imagen desde la carpeta Uploads y le da forma circular -->
+                  <img src="../../Resources/Uploads/<?php echo htmlspecialchars($_SESSION['imagen_perfil']); ?>" alt="Avatar" width="35" height="35" class="rounded-circle object-fit-cover border border-2 border-primary">
+                <?php else: ?>
+                  <i class="bi bi-person-circle fs-3 text-secondary"></i>
+                <?php endif; ?>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser">
+                <li><h6 class="dropdown-header"><?php echo htmlspecialchars($_SESSION['nombre_completo']); ?></h6></li>
+                <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="../../Backend/Controllers/AuthController.php?logout=true">Cerrar Sesión</a></li>
+              </ul>
+            </div>
+          <?php else: ?>
+            <!-- Usuario NO Logueado: Botones y signo de interrogación -->
+            <div class="d-flex gap-2 align-items-center">
+              <a href="login.php" class="btn btn-outline-light btn-sm">Iniciar Sesión</a>
+              <a href="registro.php" class="btn btn-primary btn-sm">Registrarse</a>
+              <i class="bi bi-question-circle fs-4 text-secondary ms-1" title="Invitado"></i>
+            </div>
+          <?php endif; ?>
+
           <!-- Botón de Modo Oscuro/Claro -->
-          <button id="themeToggle" class="btn btn-outline-secondary btn-sm ms-2" title="Cambiar tema">
+          <button id="themeToggle" class="btn btn-outline-secondary btn-sm" title="Cambiar tema">
             <i class="bi bi-moon-fill"></i>
           </button>
         </div>
