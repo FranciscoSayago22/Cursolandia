@@ -55,7 +55,7 @@ if (session_status() === PHP_SESSION_NONE) {
               </a>
               <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser">
                 <li><h6 class="dropdown-header"><?php echo htmlspecialchars($_SESSION['nombre_completo']); ?></h6></li>
-                <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
+                <li><a class="dropdown-item" href="perfil.php">Mi Perfil</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item text-danger" href="../../Backend/Controllers/AuthController.php?logout=true">Cerrar Sesión</a></li>
               </ul>
