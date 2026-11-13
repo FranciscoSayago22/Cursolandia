@@ -84,6 +84,7 @@ if (isset($_POST['registrar_usuario'])) {
         $_SESSION['usuario_id'] = $usuarioData['id'];
         $_SESSION['nombre_completo'] = $usuarioData['nombre_completo'];
         $_SESSION['imagen_perfil'] = $usuarioData['imagen_perfil'];
+        $_SESSION['plan'] = $usuarioData['plan'];
 
         // Redirigir al inicio
         header("Location: ../../Frontend/Views/index.php");

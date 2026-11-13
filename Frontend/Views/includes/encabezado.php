@@ -37,6 +37,15 @@ if (session_status() === PHP_SESSION_NONE) {
           <li class="nav-item">
             <a class="nav-link" href="#">Planes (Gratis vs PRO)</a>
           </li>
+
+          <!-- Menú exclusivo para Administradores -->
+          <?php if (isset($_SESSION['plan']) && $_SESSION['plan'] == 'admin'): ?>
+          <li class="nav-item ms-lg-3">
+            <a class="nav-link text-warning fw-bold" href="admin_solicitudes.php">
+              <i class="bi bi-shield-lock-fill me-1"></i>Panel Admin
+            </a>
+          </li>
+          <?php endif; ?>
         </ul>
 
         <!-- Acceso, Autenticación y Avatar -->

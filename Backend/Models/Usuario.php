@@ -63,7 +63,7 @@ class Usuario {
 
     // Método estático para verificar las credenciales en el login
     public static function autenticar($conexion, $email, $password) {
-        $sql = "SELECT id, nombre_completo, password, imagen_perfil FROM usuarios WHERE email = ?";
+        $sql = "SELECT id, nombre_completo, password, imagen_perfil, plan FROM usuarios WHERE email = ?";
         $stmt = $conexion->prepare($sql);
         
         if ($stmt) {

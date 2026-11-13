@@ -85,8 +85,15 @@ elseif (isset($_POST['solicitar_pro'])) {
         $nombre_pago = time() . "_pago_" . basename($_FILES['comprobante_pro']['name']);
         move_uploaded_file($_FILES['comprobante_pro']['tmp_name'], $directorio_destino . $nombre_pago);
         
-        // Aquí deberíamos guardar la solicitud en una tabla 'solicitudes_pro' 
-        // Por ahora, simularemos que se envió correctamente.
+        // Insertamos la solicitud en la base de datos
+        $sql = "INSERT INTO solicitudes_pro (usuario_id, comprobante_pago, mensaje) VALUES (?, ?, ?)";
+        $stmt = $conexion->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("iss", $usuario_id, $nombre_pago, $mensaje);
+            $stmt->execute();
+            $stmt->close();
+        }
+        
         header("Location: ../../Frontend/Views/perfil.php?exito=pro_solicitado");
     } else {
         header("Location: ../../Frontend/Views/perfil.php?error=archivo_invalido");
