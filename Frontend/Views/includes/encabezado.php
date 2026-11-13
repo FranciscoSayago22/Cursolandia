@@ -52,6 +52,11 @@ if (session_status() === PHP_SESSION_NONE) {
         <div class="d-flex gap-3 align-items-center">
           
           <?php if (isset($_SESSION['usuario_id'])): ?>
+
+            <!-- NUEVO: Botón Crear Curso -->
+            <a href="crear_curso.php" class="btn btn-primary btn-sm fw-medium me-2 shadow-sm">
+              <i class="bi bi-plus-circle me-1"></i>Crear Curso
+            </a>
             <!-- Usuario Logueado: Dropdown con Avatar -->
             <div class="dropdown">
               <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
