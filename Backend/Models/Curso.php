@@ -83,5 +83,72 @@ class Curso {
             return false;
         }
     }
+
+    // Obtiene los cursos creados por usuarios PRO o ADMIN (Destacados)
+    public static function obtenerDestacados($conexion) {
+        $sql = "SELECT c.*, u.nombre_completo as creador_nombre, u.imagen_perfil as creador_imagen, u.plan 
+                FROM cursos c 
+                INNER JOIN usuarios u ON c.creador_id = u.id 
+                WHERE (u.plan = 'pro' OR u.plan = 'admin') AND c.estado = 'publico' 
+                ORDER BY c.fecha_creacion DESC LIMIT 3";
+        return $conexion->query($sql);
+    }
+
+    // Obtiene los cursos creados por usuarios GRATIS
+    public static function obtenerRegulares($conexion) {
+        $sql = "SELECT c.*, u.nombre_completo as creador_nombre, u.imagen_perfil as creador_imagen, u.plan 
+                FROM cursos c 
+                INNER JOIN usuarios u ON c.creador_id = u.id 
+                WHERE u.plan = 'gratis' AND c.estado = 'publico' 
+                ORDER BY c.fecha_creacion DESC";
+        return $conexion->query($sql);
+    }
+
+    // Obtiene las etiquetas cruzando las tablas N:M
+    public static function obtenerEtiquetas($conexion, $curso_id) {
+        $sql = "SELECT e.nombre FROM etiquetas e 
+                INNER JOIN curso_etiquetas ce ON e.id = ce.etiqueta_id 
+                WHERE ce.curso_id = ?";
+        $stmt = $conexion->prepare($sql);
+        $etiquetas = [];
+        if ($stmt) {
+            $stmt->bind_param("i", $curso_id);
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+            while ($fila = $resultado->fetch_assoc()) {
+                $etiquetas[] = $fila['nombre'];
+            }
+            $stmt->close();
+        }
+        return $etiquetas;
+    }
+
+    // Obtener los cursos creados por un usuario específico
+    public static function obtenerPorCreador($conexion, $creador_id) {
+        $sql = "SELECT * FROM cursos WHERE creador_id = ? ORDER BY fecha_creacion DESC";
+        $stmt = $conexion->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("i", $creador_id);
+            $stmt->execute();
+            return $stmt->get_result();
+        }
+        return false;
+    }
+
+    // Obtener los cursos a los que el usuario está inscrito
+    public static function obtenerInscritos($conexion, $usuario_id) {
+        $sql = "SELECT c.*, i.fecha_inscripcion 
+                FROM cursos c 
+                INNER JOIN inscripciones i ON c.id = i.curso_id 
+                WHERE i.usuario_id = ? AND i.estado = 'activa'
+                ORDER BY i.fecha_inscripcion DESC";
+        $stmt = $conexion->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("i", $usuario_id);
+            $stmt->execute();
+            return $stmt->get_result();
+        }
+        return false;
+    }
 }
 ?>

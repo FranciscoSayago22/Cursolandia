@@ -45,6 +45,20 @@ include 'includes/encabezado.php';
     </div>
     <?php endif; ?>
 
+    <?php if(isset($_GET['error']) && $_GET['error'] == 'limite_cursos'): ?>
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Límite alcanzado.</strong> Los usuarios del Plan Gratuito solo pueden cursar 3 cursos a la vez. <a href="perfil.php" class="alert-link">Pásate a PRO</a>.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+    
+    <?php if(isset($_GET['error']) && $_GET['error'] == 'ya_inscrito'): ?>
+    <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+      <i class="bi bi-info-circle-fill me-2"></i>Ya te encuentras inscrito en este curso.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+
     <div class="row g-4">
       <!-- Columna Principal: Info del Curso -->
       <div class="col-lg-8">
