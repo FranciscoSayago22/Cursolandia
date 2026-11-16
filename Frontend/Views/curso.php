@@ -182,26 +182,59 @@ include 'includes/encabezado.php';
                     <?php
                       $es_autor_pregunta = (isset($_SESSION['usuario_id']) && $_SESSION['usuario_id'] == $p['usuario_id']);
                       $es_admin = (isset($_SESSION['plan']) && $_SESSION['plan'] === 'admin');
-                      $puede_marcar_util = ($es_creador || $es_autor_pregunta);
+                      $pregunta_cerrada = (isset($p['cerrada']) && intval($p['cerrada']) === 1);
+                      $puede_gestionar_pregunta = ($es_creador || $es_autor_pregunta);
                       $puede_eliminar_pregunta = ($es_creador || $es_autor_pregunta || $es_admin);
+
+                      $respuestas = Foro::obtenerRespuestasPorPregunta($conexion, $p['id']);
+                      $ultima_respuesta_id = null;
+                      $ultimo_respondente_id = null;
+
+                      if (count($respuestas) > 0) {
+                          $ultima_respuesta_id = max(array_column($respuestas, 'id'));
+                          foreach ($respuestas as $resp_tmp) {
+                              if ($resp_tmp['id'] == $ultima_respuesta_id) {
+                                  $ultimo_respondente_id = $resp_tmp['usuario_id'];
+                                  break;
+                              }
+                          }
+                      }
+                      $bloqueado_por_seguida = (isset($_SESSION['usuario_id']) && $ultimo_respondente_id == $_SESSION['usuario_id']);
                     ?>
                     <div class="card shadow-sm border-secondary-subtle">
                       <div class="card-body">
                         
                         <!-- Header de la Pregunta -->
-                        <div class="d-flex align-items-center mb-2">
+                        <div class="d-flex flex-wrap align-items-center mb-2 gap-2">
                           <?php if (!empty($p['imagen_perfil'])): ?>
-                            <img src="../../Resources/Uploads/<?php echo htmlspecialchars($p['imagen_perfil']); ?>" class="rounded-circle me-2 object-fit-cover" width="30" height="30">
+                            <img src="../../Resources/Uploads/<?php echo htmlspecialchars($p['imagen_perfil']); ?>" class="rounded-circle object-fit-cover" width="30" height="30">
                           <?php else: ?>
-                            <i class="bi bi-person-circle fs-4 text-secondary me-2"></i>
+                            <i class="bi bi-person-circle fs-4 text-secondary"></i>
                           <?php endif; ?>
-                          <strong class="me-2"><?php echo htmlspecialchars($p['nombre_completo']); ?></strong>
+                          <strong><?php echo htmlspecialchars($p['nombre_completo']); ?></strong>
                           <?php if($p['plan'] == 'pro'): ?>
-                            <span class="badge text-bg-warning me-2" style="font-size: 0.6rem;">PRO</span>
+                            <span class="badge text-bg-warning" style="font-size: 0.6rem;">PRO</span>
+                          <?php endif; ?>
+
+                          <?php if ($pregunta_cerrada): ?>
+                            <span class="badge bg-secondary"><i class="bi bi-lock-fill me-1"></i>Pregunta Cerrada</span>
                           <?php endif; ?>
 
                           <div class="ms-auto d-flex align-items-center gap-2">
                             <small class="text-muted"><?php echo date("d/m/Y H:i", strtotime($p['fecha'])); ?></small>
+
+                            <!-- Botón Cerrar Pregunta -->
+                            <?php if ($puede_gestionar_pregunta && !$pregunta_cerrada): ?>
+                              <form action="../../Backend/Controllers/ForoController.php" method="POST" class="d-inline" onsubmit="return confirm('¿Cerrar esta pregunta? Ya no se podrán agregar nuevas respuestas y se notificará a los participantes.');">
+                                <input type="hidden" name="curso_id" value="<?php echo $curso['id']; ?>">
+                                <input type="hidden" name="pregunta_id" value="<?php echo $p['id']; ?>">
+                                <button type="submit" name="cerrar_pregunta" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;" title="Cerrar pregunta">
+                                  <i class="bi bi-lock me-1"></i>Cerrar
+                                </button>
+                              </form>
+                            <?php endif; ?>
+
+                            <!-- Botón Eliminar Pregunta -->
                             <?php if ($puede_eliminar_pregunta): ?>
                               <form action="../../Backend/Controllers/ForoController.php" method="POST" class="d-inline" onsubmit="return confirm('¿Seguro que deseas eliminar esta pregunta y todas sus respuestas?');">
                                 <input type="hidden" name="curso_id" value="<?php echo $curso['id']; ?>">
@@ -218,12 +251,12 @@ include 'includes/encabezado.php';
                         <p class="mb-3 fw-medium"><?php echo nl2br(htmlspecialchars($p['pregunta'])); ?></p>
 
                         <!-- MÓDULO DE RESPUESTAS -->
-                        <?php 
-                        $respuestas = Foro::obtenerRespuestasPorPregunta($conexion, $p['id']);
-                        if (count($respuestas) > 0):
-                        ?>
+                        <?php if (count($respuestas) > 0): ?>
                           <div class="bg-body-tertiary p-3 rounded-3 mb-3 border border-secondary-subtle">
                             <?php foreach($respuestas as $r): ?>
+                              <?php 
+                                $es_mi_ultima = (!$pregunta_cerrada && isset($_SESSION['usuario_id']) && $r['id'] == $ultima_respuesta_id && $r['usuario_id'] == $_SESSION['usuario_id']);
+                              ?>
                               <div class="d-flex mb-2 pb-2 <?php echo ($r !== end($respuestas)) ? 'border-bottom border-secondary-subtle' : ''; ?>">
                                 
                                 <div class="me-2">
@@ -235,48 +268,81 @@ include 'includes/encabezado.php';
                                 </div>
                                 
                                 <div class="flex-grow-1">
-                                  <div class="d-flex align-items-center">
-                                    <strong class="small me-2"><?php echo htmlspecialchars($r['nombre_completo']); ?></strong>
+                                  <div class="d-flex flex-wrap align-items-center gap-1">
+                                    <strong class="small me-1"><?php echo htmlspecialchars($r['nombre_completo']); ?></strong>
                                     
-                                    <!-- Insignia de Creador -->
                                     <?php if($r['usuario_id'] == $curso['creador_id']): ?>
-                                      <span class="badge bg-primary me-2" style="font-size: 0.6rem;">Educador</span>
+                                      <span class="badge bg-primary" style="font-size: 0.6rem;">Educador</span>
                                     <?php endif; ?>
 
-                                    <!-- Insignia de Respuesta Aceptada -->
                                     <?php if($r['es_aceptada']): ?>
-                                      <span class="badge bg-success" style="font-size: 0.6rem;"><i class="bi bi-check-circle-fill me-1"></i>Respuesta Aceptada</span>
+                                      <span class="badge bg-success" style="font-size: 0.6rem;"><i class="bi bi-check-circle-fill me-1"></i>Respuesta Destacada</span>
                                     <?php endif; ?>
                                   </div>
                                   
                                   <p class="small mb-1"><?php echo nl2br(htmlspecialchars($r['respuesta'])); ?></p>
                                   
-                                  <!-- Botón Aceptar Respuesta (Creador del Curso o Autor de la Pregunta) -->
-                                  <?php if($puede_marcar_util && !$r['es_aceptada']): ?>
-                                    <form action="../../Backend/Controllers/ForoController.php" method="POST" class="d-inline">
-                                      <input type="hidden" name="curso_id" value="<?php echo $curso['id']; ?>">
-                                      <input type="hidden" name="pregunta_id" value="<?php echo $p['id']; ?>">
-                                      <input type="hidden" name="respuesta_id" value="<?php echo $r['id']; ?>">
-                                      <button type="submit" name="marcar_aceptada" class="btn btn-link btn-sm p-0 text-success text-decoration-none" style="font-size: 0.75rem;">
-                                        <i class="bi bi-check2-circle me-1"></i>Marcar como útil
+                                  <div class="d-flex align-items-center gap-3">
+                                    <!-- Botón Destacar Respuesta (solo si la pregunta sigue abierta) -->
+                                    <?php if($puede_gestionar_pregunta && !$pregunta_cerrada && !$r['es_aceptada']): ?>
+                                      <form action="../../Backend/Controllers/ForoController.php" method="POST" class="d-inline">
+                                        <input type="hidden" name="curso_id" value="<?php echo $curso['id']; ?>">
+                                        <input type="hidden" name="pregunta_id" value="<?php echo $p['id']; ?>">
+                                        <input type="hidden" name="respuesta_id" value="<?php echo $r['id']; ?>">
+                                        <button type="submit" name="marcar_aceptada" class="btn btn-link btn-sm p-0 text-success text-decoration-none" style="font-size: 0.75rem;">
+                                          <i class="bi bi-check2-circle me-1"></i>Marcar como útil
+                                        </button>
+                                      </form>
+                                    <?php endif; ?>
+
+                                    <!-- Botón Editar Última Respuesta -->
+                                    <?php if ($es_mi_ultima): ?>
+                                      <button type="button" class="btn btn-link btn-sm p-0 text-primary text-decoration-none" style="font-size: 0.75rem;" data-bs-toggle="collapse" data-bs-target="#editResp<?php echo $r['id']; ?>">
+                                        <i class="bi bi-pencil me-1"></i>Editar mi respuesta
                                       </button>
-                                    </form>
+                                    <?php endif; ?>
+                                  </div>
+
+                                  <!-- Formulario desplegable para editar la última respuesta -->
+                                  <?php if ($es_mi_ultima): ?>
+                                    <div class="collapse mt-2" id="editResp<?php echo $r['id']; ?>">
+                                      <form action="../../Backend/Controllers/ForoController.php" method="POST">
+                                        <input type="hidden" name="curso_id" value="<?php echo $curso['id']; ?>">
+                                        <input type="hidden" name="pregunta_id" value="<?php echo $p['id']; ?>">
+                                        <input type="hidden" name="respuesta_id" value="<?php echo $r['id']; ?>">
+                                        <div class="input-group input-group-sm">
+                                          <input type="text" name="respuesta" class="form-control bg-body" value="<?php echo htmlspecialchars($r['respuesta']); ?>" required>
+                                          <button class="btn btn-primary" type="submit" name="editar_respuesta">Guardar</button>
+                                        </div>
+                                      </form>
+                                    </div>
                                   <?php endif; ?>
+
                                 </div>
                               </div>
                             <?php endforeach; ?>
                           </div>
                         <?php endif; ?>
 
-                        <!-- Formulario para Responder -->
-                        <form action="../../Backend/Controllers/ForoController.php" method="POST">
-                          <input type="hidden" name="curso_id" value="<?php echo $curso['id']; ?>">
-                          <input type="hidden" name="pregunta_id" value="<?php echo $p['id']; ?>">
-                          <div class="input-group input-group-sm">
-                            <input type="text" name="respuesta" class="form-control bg-body-tertiary" placeholder="Escribe una respuesta..." required>
-                            <button class="btn btn-outline-primary" type="submit" name="nueva_respuesta"><i class="bi bi-send"></i></button>
+                        <!-- Formulario para Responder (según estado y regla de no repetir) -->
+                        <?php if ($pregunta_cerrada): ?>
+                          <div class="small text-muted fst-italic">
+                            <i class="bi bi-lock-fill me-1"></i>Esta pregunta está cerrada y no admite nuevas respuestas.
                           </div>
-                        </form>
+                        <?php elseif ($bloqueado_por_seguida): ?>
+                          <div class="small text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-2 px-3 py-2">
+                            <i class="bi bi-info-circle-fill me-1"></i>Ya enviaste la última respuesta. Podés editarla arriba o esperar a que otro usuario responda antes.
+                          </div>
+                        <?php else: ?>
+                          <form action="../../Backend/Controllers/ForoController.php" method="POST">
+                            <input type="hidden" name="curso_id" value="<?php echo $curso['id']; ?>">
+                            <input type="hidden" name="pregunta_id" value="<?php echo $p['id']; ?>">
+                            <div class="input-group input-group-sm">
+                              <input type="text" name="respuesta" class="form-control bg-body-tertiary" placeholder="Escribe una respuesta..." required>
+                              <button class="btn btn-outline-primary" type="submit" name="nueva_respuesta"><i class="bi bi-send"></i></button>
+                            </div>
+                          </form>
+                        <?php endif; ?>
 
                       </div>
                     </div>

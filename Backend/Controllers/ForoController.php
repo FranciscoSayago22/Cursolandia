@@ -10,7 +10,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
 $db = new Conexion();
 $conexion = $db->conectar();
-$usuario_id = $_SESSION['usuario_id'];
+$usuario_id = intval($_SESSION['usuario_id']);
 
 // 1. NUEVA PREGUNTA
 if (isset($_POST['nueva_pregunta'])) {
@@ -20,37 +20,68 @@ if (isset($_POST['nueva_pregunta'])) {
     if (!empty($pregunta)) {
         Foro::crearPregunta($conexion, $curso_id, $usuario_id, $pregunta);
     }
-    // Redirigimos al curso agregando #foro al final para que la pantalla baje automáticamente hasta esa sección
     header("Location: ../../Frontend/Views/curso.php?id=" . $curso_id . "#foro");
     exit();
 }
 
 // 2. NUEVA RESPUESTA
 elseif (isset($_POST['nueva_respuesta'])) {
-    $curso_id = intval($_POST['curso_id']); // Lo pasamos oculto para poder redirigir de vuelta
+    $curso_id = intval($_POST['curso_id']);
     $pregunta_id = intval($_POST['pregunta_id']);
     $respuesta = trim($_POST['respuesta']);
 
     if (!empty($respuesta)) {
-        Foro::crearRespuesta($conexion, $pregunta_id, $usuario_id, $respuesta);
+        $res = Foro::crearRespuesta($conexion, $pregunta_id, $usuario_id, $respuesta);
+        if ($res === 'respuesta_seguida') {
+            header("Location: ../../Frontend/Views/curso.php?id=" . $curso_id . "&error=respuesta_seguida#foro");
+            exit();
+        } elseif ($res === 'cerrada') {
+            header("Location: ../../Frontend/Views/curso.php?id=" . $curso_id . "&error=pregunta_cerrada#foro");
+            exit();
+        }
     }
     header("Location: ../../Frontend/Views/curso.php?id=" . $curso_id . "#foro");
     exit();
 }
 
-// 3. ACEPTAR RESPUESTA (Educador o autor de la pregunta)
-elseif (isset($_POST['marcar_aceptada'])) {
+// 2b. EDITAR ÚLTIMA RESPUESTA
+elseif (isset($_POST['editar_respuesta'])) {
     $curso_id = intval($_POST['curso_id']);
     $pregunta_id = intval($_POST['pregunta_id']);
     $respuesta_id = intval($_POST['respuesta_id']);
-    
-    Foro::aceptarRespuesta($conexion, $respuesta_id, $pregunta_id, $usuario_id);
-    
+    $nuevo_texto = trim($_POST['respuesta']);
+
+    if (!empty($nuevo_texto)) {
+        Foro::editarRespuesta($conexion, $respuesta_id, $pregunta_id, $usuario_id, $nuevo_texto);
+    }
     header("Location: ../../Frontend/Views/curso.php?id=" . $curso_id . "#foro");
     exit();
 }
 
-// 4. ELIMINAR PREGUNTA (Autor de la pregunta, Educador o Admin)
+// 3. DESTACAR RESPUESTA
+elseif (isset($_POST['marcar_aceptada'])) {
+    $curso_id = intval($_POST['curso_id']);
+    $pregunta_id = intval($_POST['pregunta_id']);
+    $respuesta_id = intval($_POST['respuesta_id']);
+
+    Foro::aceptarRespuesta($conexion, $respuesta_id, $pregunta_id, $usuario_id);
+
+    header("Location: ../../Frontend/Views/curso.php?id=" . $curso_id . "#foro");
+    exit();
+}
+
+// 4. CERRAR PREGUNTA
+elseif (isset($_POST['cerrar_pregunta'])) {
+    $curso_id = intval($_POST['curso_id']);
+    $pregunta_id = intval($_POST['pregunta_id']);
+
+    Foro::cerrarPregunta($conexion, $pregunta_id, $usuario_id);
+
+    header("Location: ../../Frontend/Views/curso.php?id=" . $curso_id . "#foro");
+    exit();
+}
+
+// 5. ELIMINAR PREGUNTA
 elseif (isset($_POST['eliminar_pregunta'])) {
     $curso_id = intval($_POST['curso_id']);
     $pregunta_id = intval($_POST['pregunta_id']);
