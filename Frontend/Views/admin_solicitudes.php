@@ -19,6 +19,17 @@ $sql = "SELECT s.id as solicitud_id, s.mensaje, s.comprobante_pago, s.fecha_soli
         ORDER BY s.fecha_solicitud DESC";
 $resultado = $conexion->query($sql);
 
+// Traer historial de solicitudes resueltas (aprobadas y rechazadas)
+$sql_historial = "SELECT s.*, u.nombre_completo, u.email, u.imagen_perfil, u.plan, u.vencimiento_pro 
+                  FROM solicitudes_pro s 
+                  INNER JOIN usuarios u ON s.usuario_id = u.id 
+                  WHERE s.estado != 'pendiente' 
+                  ORDER BY s.id DESC";
+$res_historial = $conexion->query($sql_historial);
+
+date_default_timezone_set('America/Argentina/Buenos_Aires');
+$hoy = date('Y-m-d');
+
 $clase_body = "d-flex flex-column min-vh-100 bg-body-secondary";
 include 'includes/encabezado.php'; 
 ?>
@@ -80,6 +91,130 @@ include 'includes/encabezado.php';
           </div>
         <?php else: ?>
           <div class="alert alert-info border-0 shadow-sm"><i class="bi bi-info-circle me-2"></i>No hay solicitudes pendientes por revisar.</div>
+        <?php endif; ?>
+
+      </div>
+    </div>
+
+    <!-- HISTORIAL DE SOLICITUDES (ACEPTADAS Y RECHAZADAS) -->
+    <div class="card shadow-sm border-0 rounded-4 bg-body mt-5">
+      <div class="card-body p-4">
+        
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 border-bottom border-secondary-subtle pb-3 gap-2">
+          <div>
+            <h4 class="fw-bold mb-1">
+              <i class="bi bi-clock-history text-primary me-2"></i>Historial de Solicitudes PRO
+            </h4>
+            <p class="text-muted small mb-0">Registro de usuarios aprobados (con su fecha de vencimiento) y solicitudes rechazadas.</p>
+          </div>
+          <span class="badge bg-secondary-subtle text-secondary-emphasis border px-3 py-2">
+            Total resueltas: <?php echo ($res_historial) ? $res_historial->num_rows : 0; ?>
+          </span>
+        </div>
+
+        <?php if ($res_historial && $res_historial->num_rows > 0): ?>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th>Usuario</th>
+                  <th>Resolución</th>
+                  <th>Vencimiento Plan PRO</th>
+                  <th>Mensaje / Motivo</th>
+                  <th class="text-center">Comprobante</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php while ($hist = $res_historial->fetch_assoc()): ?>
+                  <?php
+                    $es_aprobada = ($hist['estado'] === 'aprobada' || $hist['estado'] === 'aceptada');
+                    $comprobante = $hist['comprobante'] ?? ($hist['comprobante_pago'] ?? ($hist['comprobante_pro'] ?? ''));
+                    $mensaje = $hist['mensaje'] ?? ($hist['mensaje_admin'] ?? '');
+                    $fecha_sol = $hist['fecha_solicitud'] ?? ($hist['fecha'] ?? null);
+                  ?>
+                  <tr>
+                    <!-- Datos del Usuario -->
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <?php if (!empty($hist['imagen_perfil'])): ?>
+                          <img src="../../Resources/Uploads/<?php echo htmlspecialchars($hist['imagen_perfil']); ?>" alt="Avatar" width="38" height="38" class="rounded-circle object-fit-cover me-2 flex-shrink-0">
+                        <?php else: ?>
+                          <i class="bi bi-person-circle fs-3 text-secondary me-2 flex-shrink-0"></i>
+                        <?php endif; ?>
+                        <div>
+                          <div class="fw-bold"><?php echo htmlspecialchars($hist['nombre_completo']); ?></div>
+                          <div class="small text-muted"><?php echo htmlspecialchars($hist['email']); ?></div>
+                          <?php if ($fecha_sol): ?>
+                            <div class="text-muted" style="font-size: 0.72rem;">
+                              Solicitado el <?php echo date("d/m/Y", strtotime($fecha_sol)); ?>
+                            </div>
+                          <?php endif; ?>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Estado de la Resolución -->
+                    <td>
+                      <?php if ($es_aprobada): ?>
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-2 py-1">
+                          <i class="bi bi-check-circle-fill me-1"></i>Aceptada
+                        </span>
+                      <?php else: ?>
+                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle px-2 py-1">
+                          <i class="bi bi-x-circle-fill me-1"></i>Rechazada
+                        </span>
+                      <?php endif; ?>
+                    </td>
+
+                    <!-- Vencimiento PRO (solo si fue aceptada) -->
+                    <td>
+                      <?php if ($es_aprobada): ?>
+                        <?php if (!empty($hist['vencimiento_pro'])): ?>
+                          <?php $esta_vencido = ($hist['vencimiento_pro'] < $hoy); ?>
+                          <div class="fw-semibold">
+                            <i class="bi bi-calendar-event text-primary me-1"></i>
+                            <?php echo date("d/m/Y", strtotime($hist['vencimiento_pro'])); ?>
+                          </div>
+                          <?php if ($esta_vencido): ?>
+                            <span class="badge text-bg-danger" style="font-size: 0.65rem;">Vencido</span>
+                          <?php else: ?>
+                            <span class="badge text-bg-warning" style="font-size: 0.65rem;">Vigente</span>
+                          <?php endif; ?>
+                        <?php else: ?>
+                          <span class="small text-muted">Sin fecha asignada</span>
+                        <?php endif; ?>
+                      <?php else: ?>
+                        <span class="text-muted small">—</span>
+                      <?php endif; ?>
+                    </td>
+
+                    <!-- Mensaje de la solicitud -->
+                    <td style="max-width: 260px;">
+                      <p class="small text-body-secondary mb-0 text-truncate" title="<?php echo htmlspecialchars($mensaje); ?>">
+                        <?php echo !empty($mensaje) ? htmlspecialchars($mensaje) : '<span class="fst-italic text-muted">Sin mensaje</span>'; ?>
+                      </p>
+                    </td>
+
+                    <!-- Comprobante adjunto -->
+                    <td class="text-center">
+                      <?php if (!empty($comprobante)): ?>
+                        <a href="../../Resources/Uploads/<?php echo htmlspecialchars($comprobante); ?>" target="_blank" class="btn btn-outline-primary btn-sm">
+                          <i class="bi bi-file-earmark-text me-1"></i>Ver
+                        </a>
+                      <?php else: ?>
+                        <span class="text-muted small">—</span>
+                      <?php endif; ?>
+                    </td>
+                  </tr>
+                <?php endwhile; ?>
+              </tbody>
+            </table>
+          </div>
+        <?php else: ?>
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+            Todavía no hay solicitudes aprobadas ni rechazadas en el historial.
+          </div>
         <?php endif; ?>
 
       </div>
