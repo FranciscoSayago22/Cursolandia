@@ -79,6 +79,13 @@ include 'includes/encabezado.php';
     </div>
     <?php endif; ?>
 
+    <?php if(isset($_GET['exito']) && $_GET['exito'] == 'curso_editado'): ?>
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>¡Los cambios del curso se guardaron correctamente!
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+
     <?php if(isset($_GET['error']) && $_GET['error'] == 'limite_cursos'): ?>
     <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
       <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Límite alcanzado.</strong> Los usuarios del Plan Gratuito solo pueden cursar 3 cursos a la vez. <a href="perfil.php" class="alert-link">Pásate a PRO</a>.
@@ -93,7 +100,6 @@ include 'includes/encabezado.php';
     </div>
     <?php endif; ?>
 
-    <!-- PARTE B: Alerta de curso sin cupo -->
     <?php if(isset($_GET['error']) && $_GET['error'] == 'sin_cupo'): ?>
     <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
       <i class="bi bi-people-fill me-2"></i><strong>Sin cupo disponible.</strong> Este curso ya alcanzó su límite máximo de alumnos.
@@ -125,7 +131,6 @@ include 'includes/encabezado.php';
             <ul class="list-unstyled mb-4">
               <li class="mb-2"><i class="bi bi-calendar-check text-primary me-2"></i><strong>Inicio:</strong> <?php echo date("d/m/Y", strtotime($curso['fecha_inicio'])); ?></li>
               <li class="mb-2"><i class="bi bi-calendar-x text-primary me-2"></i><strong>Finalización:</strong> <?php echo date("d/m/Y", strtotime($curso['fecha_fin'])); ?></li>
-              <!-- PARTE C (1/2): Detalle de cupos ocupados -->
               <li>
                 <i class="bi bi-people-fill text-primary me-2"></i><strong>Cupo Máximo:</strong> 
                 <?php if ($curso['cupo']): ?>
@@ -304,10 +309,12 @@ include 'includes/encabezado.php';
               <?php echo $curso['costo'] == 0 ? '¡Curso Gratuito!' : '$' . number_format($curso['costo'], 2, ',', '.'); ?>
             </h4>
             
-            <!-- PARTE C (2/2): Botón bloqueado si no hay cupo -->
             <?php if (isset($_SESSION['usuario_id'])): ?>
                 <?php if ($es_creador): ?>
                     <button class="btn btn-secondary w-100 btn-lg fw-bold mb-2" disabled>Eres el Creador</button>
+                    <a href="editar_curso.php?id=<?php echo $curso['id']; ?>" class="btn btn-outline-primary w-100 fw-bold mb-2">
+                      <i class="bi bi-pencil-square me-1"></i>Editar Curso
+                    </a>
                 <?php elseif ($esta_inscrito): ?>
                     <button class="btn btn-success w-100 btn-lg fw-bold mb-2" disabled><i class="bi bi-check-lg me-2"></i>Inscrito</button>
                 <?php elseif ($sin_cupo): ?>

@@ -220,5 +220,140 @@ class Curso {
         }
         return 0;
     }
+
+    // Obtener un curso por su ID
+    public static function obtenerPorId($conexion, $curso_id) {
+        $sql = "SELECT * FROM cursos WHERE id = ?";
+        $stmt = $conexion->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("i", $curso_id);
+            $stmt->execute();
+            $curso = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            return $curso;
+        }
+        return null;
+    }
+
+    // Obtener los materiales adjuntos de un curso (incluyendo su ID)
+    public static function obtenerMateriales($conexion, $curso_id) {
+        $sql = "SELECT id, nombre_archivo, peso_bytes FROM material_curso WHERE curso_id = ?";
+        $stmt = $conexion->prepare($sql);
+        $materiales = [];
+        if ($stmt) {
+            $stmt->bind_param("i", $curso_id);
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+            while ($fila = $resultado->fetch_assoc()) {
+                $materiales[] = $fila;
+            }
+            $stmt->close();
+        }
+        return $materiales;
+    }
+
+    // Actualizar solo los campos permitidos del curso, etiquetas y materiales
+    public static function actualizar($conexion, $curso_id, $creador_id, $titulo, $descripcion, $estado, $etiquetas, $ids_eliminar, $archivos_nuevos, $directorio_destino) {
+        $archivos_a_borrar_fisico = [];
+
+        try {
+            $conexion->begin_transaction();
+
+            // 1. Actualizar datos editables (nunca se tocan costo, cupo, fecha_inicio ni fecha_fin)
+            $sql_update = "UPDATE cursos SET titulo = ?, descripcion = ?, estado = ? WHERE id = ? AND creador_id = ?";
+            $stmt = $conexion->prepare($sql_update);
+            $stmt->bind_param("sssii", $titulo, $descripcion, $estado, $curso_id, $creador_id);
+            $stmt->execute();
+            $stmt->close();
+
+            // 2. Actualizar Etiquetas (limpiamos las anteriores y reinsertamos)
+            $sql_del_tags = "DELETE FROM curso_etiquetas WHERE curso_id = ?";
+            $stmt_del_tags = $conexion->prepare($sql_del_tags);
+            $stmt_del_tags->bind_param("i", $curso_id);
+            $stmt_del_tags->execute();
+            $stmt_del_tags->close();
+
+            if (!empty($etiquetas)) {
+                $array_etiquetas = array_unique(array_filter(array_map('trim', explode(',', $etiquetas))));
+                foreach ($array_etiquetas as $nombre_etiqueta) {
+                    $etiqueta_id = null;
+
+                    $sql_check = "SELECT id FROM etiquetas WHERE nombre = ?";
+                    $stmt_check = $conexion->prepare($sql_check);
+                    $stmt_check->bind_param("s", $nombre_etiqueta);
+                    $stmt_check->execute();
+                    $resultado = $stmt_check->get_result();
+
+                    if ($fila = $resultado->fetch_assoc()) {
+                        $etiqueta_id = $fila['id'];
+                    } else {
+                        $sql_insert_tag = "INSERT INTO etiquetas (nombre) VALUES (?)";
+                        $stmt_tag = $conexion->prepare($sql_insert_tag);
+                        $stmt_tag->bind_param("s", $nombre_etiqueta);
+                        $stmt_tag->execute();
+                        $etiqueta_id = $conexion->insert_id;
+                        $stmt_tag->close();
+                    }
+                    $stmt_check->close();
+
+                    $sql_pivot = "INSERT INTO curso_etiquetas (curso_id, etiqueta_id) VALUES (?, ?)";
+                    $stmt_pivot = $conexion->prepare($sql_pivot);
+                    $stmt_pivot->bind_param("ii", $curso_id, $etiqueta_id);
+                    $stmt_pivot->execute();
+                    $stmt_pivot->close();
+                }
+            }
+
+            // 3. Eliminar materiales marcados por el educador
+            if (!empty($ids_eliminar)) {
+                $sql_sel_mat = "SELECT nombre_archivo FROM material_curso WHERE id = ? AND curso_id = ?";
+                $sql_del_mat = "DELETE FROM material_curso WHERE id = ? AND curso_id = ?";
+                $stmt_sel_mat = $conexion->prepare($sql_sel_mat);
+                $stmt_del_mat = $conexion->prepare($sql_del_mat);
+
+                foreach ($ids_eliminar as $mat_id) {
+                    $mat_id = intval($mat_id);
+                    $stmt_sel_mat->bind_param("ii", $mat_id, $curso_id);
+                    $stmt_sel_mat->execute();
+                    $res_mat = $stmt_sel_mat->get_result();
+
+                    if ($fila_mat = $res_mat->fetch_assoc()) {
+                        $archivos_a_borrar_fisico[] = $fila_mat['nombre_archivo'];
+                        $stmt_del_mat->bind_param("ii", $mat_id, $curso_id);
+                        $stmt_del_mat->execute();
+                    }
+                }
+                $stmt_sel_mat->close();
+                $stmt_del_mat->close();
+            }
+
+            // 4. Insertar nuevos materiales adjuntos
+            if (!empty($archivos_nuevos)) {
+                $sql_material = "INSERT INTO material_curso (curso_id, nombre_archivo, peso_bytes) VALUES (?, ?, ?)";
+                $stmt_mat = $conexion->prepare($sql_material);
+                foreach ($archivos_nuevos as $archivo) {
+                    $stmt_mat->bind_param("isi", $curso_id, $archivo['nombre'], $archivo['peso']);
+                    $stmt_mat->execute();
+                }
+                $stmt_mat->close();
+            }
+
+            $conexion->commit();
+
+            // Borramos del disco los archivos eliminados solo después de confirmar en la BD
+            foreach ($archivos_a_borrar_fisico as $archivo_viejo) {
+                $ruta_fisica = $directorio_destino . $archivo_viejo;
+                if (!empty($archivo_viejo) && file_exists($ruta_fisica)) {
+                    unlink($ruta_fisica);
+                }
+            }
+
+            return true;
+
+        } catch (Exception $e) {
+            $conexion->rollback();
+            return false;
+        }
+    }
 }
 ?>

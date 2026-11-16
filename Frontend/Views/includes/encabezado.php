@@ -35,7 +35,7 @@ if (session_status() === PHP_SESSION_NONE) {
             <a class="nav-link active" aria-current="page" href="index.php">Explorar Cursos</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Planes (Gratis vs PRO)</a>
+            <a class="nav-link" href="planes.php">Planes (Gratis vs PRO)</a>
           </li>
 
           <!-- Menú exclusivo para Administradores -->

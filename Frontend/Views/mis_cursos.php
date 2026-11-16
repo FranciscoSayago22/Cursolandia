@@ -97,9 +97,14 @@ include 'includes/encabezado.php';
                       <i class="bi bi-eye me-1"></i>Estado: <?php echo ucfirst($curso['estado']); ?>
                     </p>
                     
-                    <a href="curso.php?id=<?php echo $curso['id']; ?>" class="btn btn-outline-secondary w-100 btn-sm fw-medium mb-3">
-                      <i class="bi bi-pencil-square me-1"></i>Administrar Curso
-                    </a>
+                    <div class="d-flex gap-2 mb-3">
+                      <a href="curso.php?id=<?php echo $curso['id']; ?>" class="btn btn-outline-secondary btn-sm fw-medium flex-grow-1">
+                        <i class="bi bi-eye me-1"></i>Ver Curso
+                      </a>
+                      <a href="editar_curso.php?id=<?php echo $curso['id']; ?>" class="btn btn-outline-primary btn-sm fw-medium flex-grow-1">
+                        <i class="bi bi-pencil-square me-1"></i>Editar
+                      </a>
+                    </div>
 
                     <!-- LISTA DE ALUMNOS INSCRIPTOS (ABAJO) -->
                     <div class="border-top border-secondary-subtle pt-3 mt-auto">
