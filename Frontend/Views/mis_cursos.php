@@ -97,7 +97,7 @@ include 'includes/encabezado.php';
             <div class="col-12 text-center py-5">
               <i class="bi bi-journal-x fs-1 text-secondary mb-3 d-block"></i>
               <h5 class="fw-bold">No has creado ningún curso todavía</h5>
-              <a href="crear-curso.php" class="btn btn-primary mt-2">Crear mi primer curso</a>
+              <a href="crear_curso.php" class="btn btn-primary mt-2">Crear mi primer curso</a>
             </div>
           <?php endif; ?>
         </div>

@@ -7,7 +7,8 @@ if (!isset($_SESSION['usuario_id'])) {
 }
 
 $es_pro = (isset($_SESSION['plan']) && ($_SESSION['plan'] === 'pro' || $_SESSION['plan'] === 'admin'));
-
+date_default_timezone_set('America/Argentina/Buenos_Aires');
+$hoy = date('Y-m-d');
 $clase_body = "d-flex flex-column min-vh-100 bg-body-secondary";
 include 'includes/encabezado.php'; 
 ?>
@@ -24,7 +25,12 @@ include 'includes/encabezado.php';
 
         <div class="card shadow-sm border-0 rounded-4">
           <div class="card-body p-4 p-md-5">
-            
+            <?php if (isset($_GET['error']) && $_GET['error'] === 'fechas_invalidas'): ?>
+              <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>Las fechas no son válidas. El curso no puede iniciar antes de hoy ni finalizar antes de su fecha de inicio.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            <?php endif; ?>
             <form action="../../Backend/Controllers/CursoController.php" method="POST" enctype="multipart/form-data">
               
               <!-- SECCIÓN 1: Información Básica -->
@@ -51,12 +57,12 @@ include 'includes/encabezado.php';
               <h5 class="fw-bold text-primary mb-3 border-bottom border-secondary-subtle pb-2">2. Modalidad y Fechas</h5>
               <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                  <label class="form-label fw-medium">Fecha de Inicio <span class="text-danger">*</span></label>
-                  <input type="date" class="form-control bg-body-tertiary" name="fecha_inicio" required>
+                  <label class="form-label fw-medium" for="fecha_inicio">Fecha de Inicio <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control bg-body-tertiary" id="fecha_inicio" name="fecha_inicio" min="<?php echo $hoy; ?>" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label fw-medium">Fecha de Finalización <span class="text-danger">*</span></label>
-                  <input type="date" class="form-control bg-body-tertiary" name="fecha_fin" required>
+                  <label class="form-label fw-medium" for="fecha_fin">Fecha de Finalización <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control bg-body-tertiary" id="fecha_fin" name="fecha_fin" min="<?php echo $hoy; ?>" required>
                 </div>
 
                 <div class="col-md-4">
@@ -79,7 +85,7 @@ include 'includes/encabezado.php';
               </div>
 
               <!-- SECCIÓN 3: Material Adjunto -->
-              <h5 class="fw-bold text-primary mb-3 border-bottom border-secondary-subtle pb-2">3. Material de Estudio</h5>
+              <h5 id="seccion-material" class="fw-bold text-primary mb-3 border-bottom border-secondary-subtle pb-2">3. Material de Estudio</h5>
               <div class="row g-3 mb-4">
                 <div class="col-12">
                   <div class="alert <?php echo $es_pro ? 'alert-warning border-warning' : 'alert-secondary border-secondary-subtle'; ?> py-2 shadow-sm">
@@ -91,8 +97,24 @@ include 'includes/encabezado.php';
                     <?php endif; ?>
                   </div>
 
+                  <!-- MENSAJES DE ERROR DE CARGA DE MATERIAL -->
+                  <?php if (isset($_GET['error'])): ?>
+                    <?php if ($_GET['error'] === 'limite_archivos'): ?>
+                      <p class="text-danger fw-semibold small mb-2">
+                        <i class="bi bi-exclamation-circle-fill me-1"></i>No puedes subir más de 5 archivos con el Plan Gratuito.
+                      </p>
+                    <?php elseif ($_GET['error'] === 'peso_individual'): ?>
+                      <p class="text-danger fw-semibold small mb-2">
+                        <i class="bi bi-exclamation-circle-fill me-1"></i>Uno de los archivos supera el peso máximo individual permitido.
+                      </p>
+                    <?php elseif ($_GET['error'] === 'peso_total'): ?>
+                      <p class="text-danger fw-semibold small mb-2">
+                        <i class="bi bi-exclamation-circle-fill me-1"></i>El peso total de los archivos seleccionados supera el límite de 10 MB.
+                      </p>
+                    <?php endif; ?>
+                  <?php endif; ?>
+
                   <label class="form-label fw-medium">Seleccionar Archivos (PDF, Word, PPT, JPG)</label>
-                  <!-- El atributo multiple[] crea un array de archivos en PHP -->
                   <input class="form-control bg-body-tertiary" type="file" name="material_curso[]" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png">
                 </div>
               </div>

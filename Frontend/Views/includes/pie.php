@@ -12,5 +12,7 @@
   
   <!-- Enlazamos nuestro main.js para modo claro y oscuro -->
   <script src="../js/main.js"></script>
+    <!-- Enlazamos nuestro crear-curso.js para que la fecha de inicio no pueda ser menor a la fecha de hoy y lo mismo para la de finalizacion -->
+  <script src="../js/crear-curso.js"></script>
 </body>
 </html>

@@ -17,6 +17,14 @@ $descripcion = trim($_POST['descripcion']);
 $etiquetas = trim($_POST['etiquetas']);
 $fecha_inicio = $_POST['fecha_inicio'];
 $fecha_fin = $_POST['fecha_fin'];
+date_default_timezone_set('America/Argentina/Buenos_Aires');
+$hoy = date('Y-m-d');
+
+// Validar que las fechas sean coherentes (inicio >= hoy y fin >= inicio)
+if (empty($fecha_inicio) || empty($fecha_fin) || $fecha_inicio < $hoy || $fecha_fin < $fecha_inicio) {
+    header("Location: ../../Frontend/Views/crear_curso.php?error=fechas_invalidas");
+    exit();
+}
 $costo = floatval($_POST['costo']);
 $cupo = trim($_POST['cupo']);
 $estado = $_POST['estado'];
@@ -37,7 +45,7 @@ if (isset($_FILES['material_curso']) && $_FILES['material_curso']['name'][0] != 
 
     // Regla 1: Usuario gratis máximo 5 archivos
     if (!$es_pro && $cantidad_archivos > 5) {
-        header("Location: ../../Frontend/Views/crear-curso.php?error=limite_archivos");
+        header("Location: ../../Frontend/Views/crear_curso.php?error=limite_archivos#seccion-material");
         exit();
     }
 
@@ -46,7 +54,7 @@ if (isset($_FILES['material_curso']) && $_FILES['material_curso']['name'][0] != 
         $peso_archivo = $_FILES['material_curso']['size'][$i];
         
         if (!$es_pro && $peso_archivo > $LIMITE_POR_ARCHIVO) {
-            header("Location: ../../Frontend/Views/crear-curso.php?error=peso_individual");
+            header("Location: ../../Frontend/Views/crear_curso.php?error=peso_individual#seccion-material");
             exit();
         }
         $peso_total += $peso_archivo;
@@ -54,7 +62,7 @@ if (isset($_FILES['material_curso']) && $_FILES['material_curso']['name'][0] != 
 
     // Regla 2: Usuario gratis máximo 10MB en total
     if (!$es_pro && $peso_total > $LIMITE_TOTAL) {
-        header("Location: ../../Frontend/Views/crear-curso.php?error=peso_total");
+        header("Location: ../../Frontend/Views/crear_curso.php?error=peso_total#seccion-material");
         exit();
     }
 
@@ -89,7 +97,7 @@ if ($exito) {
     // Redirigir al inicio o a una página de "Mis Cursos"
     header("Location: ../../Frontend/Views/index.php?exito=curso_creado");
 } else {
-    header("Location: ../../Frontend/Views/crear-curso.php?error=db");
+    header("Location: ../../Frontend/Views/crear_curso.php?error=db");
 }
 exit();
 ?>
