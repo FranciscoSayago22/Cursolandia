@@ -84,8 +84,25 @@ class Curso {
         }
     }
 
-    // Obtiene los cursos creados por usuarios PRO o ADMIN (Destacados)
-    public static function obtenerDestacados($conexion) {
+   // Obtiene los cursos creados por usuarios PRO o ADMIN (Destacados), con filtro opcional
+    public static function obtenerDestacados($conexion, $busqueda = '') {
+        if ($busqueda !== '') {
+            $termino = "%" . $busqueda . "%";
+            $sql = "SELECT DISTINCT c.*, u.nombre_completo as creador_nombre, u.imagen_perfil as creador_imagen, u.plan 
+                    FROM cursos c 
+                    INNER JOIN usuarios u ON c.creador_id = u.id 
+                    LEFT JOIN curso_etiquetas ce ON c.id = ce.curso_id 
+                    LEFT JOIN etiquetas e ON ce.etiqueta_id = e.id 
+                    WHERE (u.plan = 'pro' OR u.plan = 'admin') 
+                      AND c.estado = 'publico' 
+                      AND (c.titulo LIKE ? OR e.nombre LIKE ?) 
+                    ORDER BY c.fecha_creacion DESC LIMIT 3";
+            $stmt = $conexion->prepare($sql);
+            $stmt->bind_param("ss", $termino, $termino);
+            $stmt->execute();
+            return $stmt->get_result();
+        }
+
         $sql = "SELECT c.*, u.nombre_completo as creador_nombre, u.imagen_perfil as creador_imagen, u.plan 
                 FROM cursos c 
                 INNER JOIN usuarios u ON c.creador_id = u.id 
@@ -94,8 +111,25 @@ class Curso {
         return $conexion->query($sql);
     }
 
-    // Obtiene los cursos creados por usuarios GRATIS
-    public static function obtenerRegulares($conexion) {
+    // Obtiene los cursos creados por usuarios GRATIS, con filtro opcional
+    public static function obtenerRegulares($conexion, $busqueda = '') {
+        if ($busqueda !== '') {
+            $termino = "%" . $busqueda . "%";
+            $sql = "SELECT DISTINCT c.*, u.nombre_completo as creador_nombre, u.imagen_perfil as creador_imagen, u.plan 
+                    FROM cursos c 
+                    INNER JOIN usuarios u ON c.creador_id = u.id 
+                    LEFT JOIN curso_etiquetas ce ON c.id = ce.curso_id 
+                    LEFT JOIN etiquetas e ON ce.etiqueta_id = e.id 
+                    WHERE u.plan = 'gratis' 
+                      AND c.estado = 'publico' 
+                      AND (c.titulo LIKE ? OR e.nombre LIKE ?) 
+                    ORDER BY c.fecha_creacion DESC";
+            $stmt = $conexion->prepare($sql);
+            $stmt->bind_param("ss", $termino, $termino);
+            $stmt->execute();
+            return $stmt->get_result();
+        }
+
         $sql = "SELECT c.*, u.nombre_completo as creador_nombre, u.imagen_perfil as creador_imagen, u.plan 
                 FROM cursos c 
                 INNER JOIN usuarios u ON c.creador_id = u.id 

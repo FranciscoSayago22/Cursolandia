@@ -5,9 +5,12 @@ require_once '../../Backend/Models/Curso.php';
 $db = new Conexion();
 $conexion = $db->conectar();
 
-// Traemos los cursos usando los métodos del modelo
-$cursos_destacados = Curso::obtenerDestacados($conexion);
-$cursos_regulares = Curso::obtenerRegulares($conexion);
+$busqueda_raw = isset($_GET['q']) ? trim($_GET['q']) : '';
+$busqueda = ltrim($busqueda_raw, '#');
+
+// Traemos los cursos aplicando el filtro si existe
+$cursos_destacados = Curso::obtenerDestacados($conexion, $busqueda);
+$cursos_regulares = Curso::obtenerRegulares($conexion, $busqueda);
 
 include 'includes/encabezado.php'; 
 ?>
@@ -23,8 +26,13 @@ include 'includes/encabezado.php';
         <!-- BUSCADOR PRINCIPAL -->
         <div class="row justify-content-center mt-4">
           <div class="col-md-8 col-lg-6">
-            <form action="#" method="GET" class="input-group">
-              <input type="text" class="form-control" name="q" placeholder="Buscar por título o etiqueta (ej. Python, Web, Diseño)..." aria-label="Buscar cursos">
+            <form action="index.php" method="GET" class="input-group">
+              <input type="text" class="form-control" name="q" value="<?php echo htmlspecialchars($busqueda_raw); ?>" placeholder="Buscar por título o etiqueta (ej. Python, Web, Diseño)..." aria-label="Buscar cursos">
+              <?php if ($busqueda_raw !== ''): ?>
+                <a href="index.php" class="btn btn-outline-light" title="Limpiar búsqueda">
+                  <i class="bi bi-x-lg"></i>
+                </a>
+              <?php endif; ?>
               <button class="btn btn-dark" type="submit">
                 <i class="bi bi-search"></i> Buscar
               </button>
@@ -173,13 +181,21 @@ include 'includes/encabezado.php';
         </div>
       </section>
       <?php else: ?>
-        <!-- Mensaje si no hay cursos regulares -->
         <?php if ($cursos_destacados->num_rows == 0): ?>
-          <div class="alert alert-info border-0 shadow-sm text-center py-5">
-            <i class="bi bi-journal-x fs-1 text-secondary d-block mb-3"></i>
-            <h5 class="fw-bold">Aún no hay cursos publicados</h5>
-            <p class="mb-0">¡Sé el primero en crear uno y empieza a compartir tu conocimiento!</p>
-          </div>
+          <?php if ($busqueda_raw !== ''): ?>
+            <div class="alert alert-warning border-0 shadow-sm text-center py-5">
+              <i class="bi bi-search fs-1 text-secondary d-block mb-3"></i>
+              <h5 class="fw-bold">No se encontraron cursos para "<?php echo htmlspecialchars($busqueda_raw); ?>"</h5>
+              <p class="mb-3">Probá buscar con otro título o etiqueta.</p>
+              <a href="index.php" class="btn btn-primary btn-sm">Ver todos los cursos</a>
+            </div>
+          <?php else: ?>
+            <div class="alert alert-info border-0 shadow-sm text-center py-5">
+              <i class="bi bi-journal-x fs-1 text-secondary d-block mb-3"></i>
+              <h5 class="fw-bold">Aún no hay cursos publicados</h5>
+              <p class="mb-0">¡Sé el primero en crear uno y empieza a compartir tu conocimiento!</p>
+            </div>
+          <?php endif; ?>
         <?php endif; ?>
       <?php endif; ?>
       
