@@ -53,9 +53,14 @@ if (session_status() === PHP_SESSION_NONE) {
           
           <?php if (isset($_SESSION['usuario_id'])): ?>
 
-            <!-- NUEVO: Botón Crear Curso -->
+            <!-- Botón Crear Curso -->
             <a href="crear_curso.php" class="btn btn-primary btn-sm fw-medium me-2 shadow-sm">
               <i class="bi bi-plus-circle me-1"></i>Crear Curso
+            </a>
+
+            <!-- Botón Mis Cursos -->
+            <a href="mis_cursos.php" class="btn btn-primary btn-sm fw-medium me-2 shadow-sm">
+              <i class="bi bi-journal-bookmark-fill me-1"></i>Mis Cursos
             </a>
             <!-- Usuario Logueado: Dropdown con Avatar -->
             <div class="dropdown">

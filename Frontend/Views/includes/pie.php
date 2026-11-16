@@ -2,7 +2,7 @@
   <footer class="bg-dark text-light py-4 mt-auto border-top border-secondary">
     <div class="container text-center small">
       <p class="mb-1 fw-semibold">Cursolandia.com &copy; 2026 - Plataforma de Aprendizaje</p>
-      <p class="text-muted mb-0">Tecnicatura Universitaria en Web | Ingeniería de Software & Programación III</p>
+      <p class="mb-0 fw-semibold">Tecnicatura Universitaria en Web | Ingeniería de Software & Programación III</p>
     </div>
   </footer>
 
