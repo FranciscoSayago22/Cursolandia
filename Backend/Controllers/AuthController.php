@@ -56,13 +56,25 @@ if (isset($_POST['registrar_usuario'])) {
     $usuario->antecedentes = $antecedentes;
 
     // 5. Guardar en la Base de Datos
-    if ($usuario->guardar($conexion)) {
-        // Si todo sale bien, redirigimos al login (que maquetaremos luego) con un mensaje de éxito
+    $resultado = $usuario->guardar($conexion);
+
+    if ($resultado === true) {
         header("Location: ../../Frontend/Views/login.php?registro=exito");
         exit();
     } else {
-        // Si hay error (ej. el correo ya existe), volvemos al registro
-        header("Location: ../../Frontend/Views/registro.php?error=db");
+        // Borramos los archivos que se subieron para no dejar basura en el servidor
+        if (!empty($ruta_imagen) && file_exists($directorio_destino . $ruta_imagen)) {
+            unlink($directorio_destino . $ruta_imagen);
+        }
+        if (!empty($ruta_comprobante) && file_exists($directorio_destino . $ruta_comprobante)) {
+            unlink($directorio_destino . $ruta_comprobante);
+        }
+
+        if ($resultado === 'duplicado') {
+            header("Location: ../../Frontend/Views/registro.php?error=email_duplicado");
+        } else {
+            header("Location: ../../Frontend/Views/registro.php?error=db");
+        }
         exit();
     }
 
@@ -80,7 +92,7 @@ if (isset($_POST['registrar_usuario'])) {
     $usuarioData = Usuario::autenticar($conexion, $email, $password);
 
     if ($usuarioData) {
-        // 4. Iniciar sesión y guardar variables globales[cite: 142, 144]
+        // 4. Iniciar sesión y guardar variables globales
         $_SESSION['usuario_id'] = $usuarioData['id'];
         $_SESSION['nombre_completo'] = $usuarioData['nombre_completo'];
         $_SESSION['imagen_perfil'] = $usuarioData['imagen_perfil'];
@@ -96,7 +108,7 @@ if (isset($_POST['registrar_usuario'])) {
     }
 
 } elseif (isset($_GET['logout'])) {
-    // Cerrar sesión y destruir variables[cite: 146]
+    // Cerrar sesión y destruir variables
     session_destroy();
     header("Location: ../../Frontend/Views/index.php");
     exit();

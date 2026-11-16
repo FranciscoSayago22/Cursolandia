@@ -37,28 +37,36 @@ class Usuario {
     // Método para guardar el usuario en la BD 
     public function guardar($conexion) {
         // Preparamos la consulta para evitar inyecciones SQL
-        $sql = "INSERT INTO usuarios (email, password, nombre_completo, imagen_perfil, titulo_profesional, comprobante_titulo, antecedentes, plan) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        $stmt = $conexion->prepare($sql);
-        
-        if ($stmt) {
-            // "ssssssss" indica que estamos pasando 8 variables de tipo String
-            $stmt->bind_param("ssssssss", 
-                $this->email, 
-                $this->password, 
-                $this->nombreCompleto, 
-                $this->imagen_perfil, 
-                $this->titulo_profesional, 
-                $this->comprobante_titulo, 
-                $this->antecedentes, 
-                $this->rol
-            );
-            $resultado = $stmt->execute();
-            $stmt->close();
-            return $resultado;
+        try {
+            $sql = "INSERT INTO usuarios (email, password, nombre_completo, imagen_perfil, titulo_profesional, comprobante_titulo, antecedentes, plan) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            $stmt = $conexion->prepare($sql);
+            
+            if ($stmt) {
+                // "ssssssss" indica que estamos pasando 8 variables de tipo String
+                $stmt->bind_param("ssssssss", 
+                    $this->email, 
+                    $this->password, 
+                    $this->nombreCompleto, 
+                    $this->imagen_perfil, 
+                    $this->titulo_profesional, 
+                    $this->comprobante_titulo, 
+                    $this->antecedentes, 
+                    $this->rol
+                );
+                $resultado = $stmt->execute();
+                $stmt->close();
+                return $resultado;
+            }
+            return false;
+        } catch (mysqli_sql_exception $e) {
+            // El código 1062 de MySQL indica clave duplicada (email ya registrado)
+            if ($e->getCode() === 1062) {
+                return 'duplicado';
+            }
+            return false;
         }
-        return false;
     }
 
     // Método estático para verificar las credenciales en el login
@@ -83,7 +91,7 @@ class Usuario {
     }
 
     // Método para actualizar los datos personales
-    public static function actualizarDatos($conexion, $id, $nombre, $titulo, $antecedentes, $ruta_imagen, $ruta_comprobante) {
+    public static function actualizarDatos($conexion, $id, $nombre, $titulo, $antecedentes, $ruta_imagen, $ruta_comprobante, $intereses = '') {
         // Armamos la consulta base
         $sql = "UPDATE usuarios SET nombre_completo = ?, titulo_profesional = ?, antecedentes = ?";
         
@@ -157,6 +165,28 @@ class Usuario {
             return $usuario;
         }
         return false;
+    }
+
+    // Obtiene los intereses del usuario como una cadena separada por comas
+    public static function obtenerIntereses($conexion, $usuario_id) {
+        $sql = "SELECT e.nombre 
+                FROM etiquetas e 
+                INNER JOIN usuario_etiquetas ue ON e.id = ue.etiqueta_id 
+                WHERE ue.usuario_id = ? 
+                ORDER BY e.nombre ASC";
+        $stmt = $conexion->prepare($sql);
+        $intereses = [];
+        
+        if ($stmt) {
+            $stmt->bind_param("i", $usuario_id);
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+            while ($fila = $resultado->fetch_assoc()) {
+                $intereses[] = $fila['nombre'];
+            }
+            $stmt->close();
+        }
+        return implode(', ', $intereses);
     }
 }
 ?>

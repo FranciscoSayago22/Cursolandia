@@ -21,7 +21,7 @@ $costo = floatval($_POST['costo']);
 $cupo = trim($_POST['cupo']);
 $estado = $_POST['estado'];
 
-// 2. Lógica de Subida Múltiple y Validación de Límites[cite: 1]
+// 2. Lógica de Subida Múltiple y Validación de Límites
 $archivos_validados = [];
 $directorio_destino = "../../Resources/Uploads/";
 

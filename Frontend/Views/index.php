@@ -116,7 +116,7 @@ include 'includes/encabezado.php';
       <!-- SECCIÓN: TODOS LOS CURSOS (REGULARES) -->
       <?php if ($cursos_regulares && $cursos_regulares->num_rows > 0): ?>
       <section>
-        <h2 class="h4 mb-3 fw-bold">Todos los Cursos</h2>
+        <h2 class="h4 mb-3 fw-bold">Cursos Regulares</h2>
         <div class="row g-4">
           <?php while($curso = $cursos_regulares->fetch_assoc()): ?>
           <div class="col-md-6 col-lg-4">

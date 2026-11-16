@@ -155,46 +155,90 @@ include 'includes/encabezado.php';
               </div>
             </div>
 
+
             <!-- PESTAÑA 3: SUSCRIPCIÓN PRO -->
             <div class="tab-pane fade" id="v-pills-pro" role="tabpanel" aria-labelledby="v-pills-pro-tab" tabindex="0">
               <div class="card shadow-sm border-0 rounded-4 mb-4 border-warning border-2">
                 <div class="card-body p-4 p-md-5">
-                  <div class="d-flex align-items-center mb-4 border-bottom border-secondary-subtle pb-2">
-                    <h4 class="fw-bold mb-0">Solicitar Plan PRO</h4>
-                    <span class="badge text-bg-warning ms-3">Beneficios Exclusivos</span>
-                  </div>
-                  
-                  <p class="text-body-secondary mb-4">
-                    Como usuario PRO podrás crear cursos sin límite de cantidad, tus cursos aparecerán destacados en la página principal y no tendrás restricción a la hora de anotarte en otros cursos.
-                  </p>
 
-                  <div class="bg-body-tertiary p-4 rounded-3 border border-secondary-subtle mb-4">
-                    <h6 class="fw-bold">Instrucciones:</h6>
-                    <ol class="small text-muted mb-0">
-                      <li>Realiza la transferencia del pago acordado por fuera del sistema.</li>
-                      <li>Adjunta el comprobante de pago en el formulario debajo.</li>
-                      <li>Envía un mensaje al administrador. Tu cuenta será actualizada una vez verificado el pago.</li>
-                    </ol>
-                  </div>
-                  
-                  <form action="../../Backend/Controllers/PerfilController.php" method="POST" enctype="multipart/form-data">
-                    <div class="row g-3">
-                      <div class="col-12">
-                        <label class="form-label fw-medium text-primary">Comprobante de Pago (Adjunto)</label>
-                        <input class="form-control bg-body-tertiary border-primary-subtle" type="file" name="comprobante_pro" accept=".pdf, .jpg, .png" required>
+                  <?php if ($datosUsuario['plan'] === 'pro'): ?>
+                    <!-- CASO 1: YA ES USUARIO PRO -->
+                    <div class="text-center py-3">
+                      <div class="mb-3">
+                        <i class="bi bi-star-fill text-warning" style="font-size: 3.5rem;"></i>
                       </div>
-                      <div class="col-12 mt-3">
-                        <label class="form-label fw-medium">Mensaje para el Administrador</label>
-                        <textarea class="form-control bg-body-tertiary" name="mensaje_admin" rows="4" placeholder="Indica fecha, monto o detalles de tu transferencia..." required></textarea>
-                      </div>
+                      <h4 class="fw-bold mb-2">¡Ya tienes el Plan PRO activo!</h4>
+                      <p class="text-body-secondary mb-3">
+                        Disfrutas de todos los beneficios exclusivos de Cursolandia sin restricciones.
+                      </p>
+                      
+                      <?php if (!empty($datosUsuario['vencimiento_pro'])): ?>
+                        <div class="d-inline-block bg-body-tertiary border border-warning-subtle rounded-3 px-4 py-2 mb-4">
+                          <small class="text-muted d-block">Vigencia de tu suscripción hasta:</small>
+                          <strong class="text-warning-emphasis fs-5">
+                            <i class="bi bi-calendar-check me-1"></i><?php echo date("d/m/Y", strtotime($datosUsuario['vencimiento_pro'])); ?>
+                          </strong>
+                        </div>
+                      <?php endif; ?>
 
-                      <div class="col-12 mt-4 text-end">
-                        <button type="submit" name="solicitar_pro" class="btn btn-warning fw-bold text-dark">
-                          <i class="bi bi-send-fill me-2"></i>Enviar Solicitud
-                        </button>
-                      </div>
+                      <ul class="list-group list-group-flush text-start max-w-md mx-auto rounded-3 border">
+                        <li class="list-group-item bg-body-tertiary"><i class="bi bi-check-circle-fill text-success me-2"></i>Creación ilimitada de cursos y sin tope de subida de archivos.</li>
+                        <li class="list-group-item bg-body-tertiary"><i class="bi bi-check-circle-fill text-success me-2"></i>Tus cursos aparecen en la sección <strong>Destacados</strong> de la portada.</li>
+                        <li class="list-group-item bg-body-tertiary"><i class="bi bi-check-circle-fill text-success me-2"></i>Inscripciones simultáneas ilimitadas en otros cursos.</li>
+                      </ul>
                     </div>
-                  </form>
+
+                  <?php elseif ($datosUsuario['plan'] === 'admin'): ?>
+                    <!-- CASO 2: ES ADMINISTRADOR -->
+                    <div class="text-center py-4">
+                      <div class="mb-3">
+                        <i class="bi bi-shield-lock-fill text-danger" style="font-size: 3.5rem;"></i>
+                      </div>
+                      <h4 class="fw-bold mb-2">Cuenta con Rol de Administrador</h4>
+                      <p class="text-body-secondary mb-0">
+                        Ya cuentas con acceso total y todos los beneficios de la plataforma habilitados por defecto, por lo que no necesitas suscribirte al Plan PRO.
+                      </p>
+                    </div>
+
+                  <?php else: ?>
+                    <!-- CASO 3: USUARIO GRATUITO (Muestra el formulario) -->
+                    <div class="d-flex align-items-center mb-4 border-bottom border-secondary-subtle pb-2">
+                      <h4 class="fw-bold mb-0">Solicitar Plan PRO</h4>
+                      <span class="badge text-bg-warning ms-3">Beneficios Exclusivos</span>
+                    </div>
+                    
+                    <p class="text-body-secondary mb-4">
+                      Como usuario PRO podrás crear cursos sin límite de cantidad, tus cursos aparecerán destacados en la página principal y no tendrás restricción a la hora de anotarte en otros cursos.
+                    </p>
+
+                    <div class="bg-body-tertiary p-4 rounded-3 border border-secondary-subtle mb-4">
+                      <h6 class="fw-bold">Instrucciones:</h6>
+                      <ol class="small text-muted mb-0">
+                        <li>Realiza la transferencia del pago acordado por fuera del sistema.</li>
+                        <li>Adjunta el comprobante de pago en el formulario debajo.</li>
+                        <li>Envía un mensaje al administrador. Tu cuenta será actualizada una vez verificado el pago.</li>
+                      </ol>
+                    </div>
+                    
+                    <form action="../../Backend/Controllers/PerfilController.php" method="POST" enctype="multipart/form-data">
+                      <div class="row g-3">
+                        <div class="col-12">
+                          <label class="form-label fw-medium text-primary">Comprobante de Pago (Adjunto)</label>
+                          <input class="form-control bg-body-tertiary border-primary-subtle" type="file" name="comprobante_pro" accept=".pdf, .jpg, .png" required>
+                        </div>
+                        <div class="col-12 mt-3">
+                          <label class="form-label fw-medium">Mensaje para el Administrador</label>
+                          <textarea class="form-control bg-body-tertiary" name="mensaje_admin" rows="4" placeholder="Indica fecha, monto o detalles de tu transferencia..." required></textarea>
+                        </div>
+
+                        <div class="col-12 mt-4 text-end">
+                          <button type="submit" name="solicitar_pro" class="btn btn-warning fw-bold text-dark">
+                            <i class="bi bi-send-fill me-2"></i>Enviar Solicitud
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  <?php endif; ?>
 
                 </div>
               </div>

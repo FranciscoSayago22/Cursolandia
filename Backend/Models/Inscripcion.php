@@ -27,7 +27,7 @@ class Inscripcion {
             }
             return false;
         } catch (mysqli_sql_exception $e) {
-            // Si salta el error de restricción UNIQUE, lo capturamos y devolvemos false[cite: 348, 353]
+            // Si salta el error de restricción UNIQUE, lo capturamos y devolvemos false
             return false; 
         }
     }

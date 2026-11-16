@@ -15,8 +15,22 @@ include 'includes/encabezado.php';
                 <h2 class="fw-bold">Crea tu cuenta</h2>
                 <p class="text-body-secondary">Completa tu perfil para empezar a crear y tomar cursos en la plataforma.</p>
               </div>
+              
+              <?php if (isset($_GET['error'])): ?>
+                <?php if ($_GET['error'] === 'email_duplicado'): ?>
+                  <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>No se puede registrar porque ese correo electrónico ya existe.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                <?php elseif ($_GET['error'] === 'db'): ?>
+                  <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Ocurrió un error al crear la cuenta. Inténtalo nuevamente.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                <?php endif; ?>
+              <?php endif; ?>
 
-              <!-- El action apuntará más adelante al Controlador -->
+              <!-- El action apunta al Controlador -->
               <form action="../../Backend/Controllers/AuthController.php" method="POST" enctype="multipart/form-data">
                 
                 <!-- SECCIÓN: CREDENCIALES -->
