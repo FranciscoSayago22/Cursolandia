@@ -69,23 +69,67 @@ class Foro {
         return $respuestas;
     }
 
-    // 5. Marcar una respuesta como aceptada
-    public static function aceptarRespuesta($conexion, $respuesta_id, $pregunta_id) {
-        // Primero quitamos el "aceptada" a cualquier otra respuesta de esa pregunta
+    // 5. Marcar una respuesta como aceptada (Educador o autor de la pregunta)
+    public static function aceptarRespuesta($conexion, $respuesta_id, $pregunta_id, $usuario_id) {
+        // Verificamos que quien marca sea el autor de la pregunta o el creador del curso
+        $sql_permiso = "SELECT p.id FROM foro_preguntas p
+                        INNER JOIN cursos c ON p.curso_id = c.id
+                        WHERE p.id = ? AND (p.usuario_id = ? OR c.creador_id = ?)";
+        $stmt_perm = $conexion->prepare($sql_permiso);
+        if ($stmt_perm) {
+            $stmt_perm->bind_param("iii", $pregunta_id, $usuario_id, $usuario_id);
+            $stmt_perm->execute();
+            $tiene_permiso = ($stmt_perm->get_result()->num_rows > 0);
+            $stmt_perm->close();
+
+            if (!$tiene_permiso) {
+                return false;
+            }
+        }
+
+        // Quitamos el "aceptada" a cualquier otra respuesta de esa pregunta
         $sql_reset = "UPDATE foro_respuestas SET es_aceptada = 0 WHERE pregunta_id = ?";
         $stmt_reset = $conexion->prepare($sql_reset);
         $stmt_reset->bind_param("i", $pregunta_id);
         $stmt_reset->execute();
         $stmt_reset->close();
 
-        // Luego marcamos la elegida como aceptada
-        $sql_accept = "UPDATE foro_respuestas SET es_aceptada = 1 WHERE id = ?";
+        // Marcamos la elegida como aceptada
+        $sql_accept = "UPDATE foro_respuestas SET es_aceptada = 1 WHERE id = ? AND pregunta_id = ?";
         $stmt_accept = $conexion->prepare($sql_accept);
-        $stmt_accept->bind_param("i", $respuesta_id);
+        $stmt_accept->bind_param("ii", $respuesta_id, $pregunta_id);
         $exito = $stmt_accept->execute();
         $stmt_accept->close();
         
         return $exito;
+    }
+
+    // 6. Eliminar una pregunta (y sus respuestas en cascada)
+    public static function eliminarPregunta($conexion, $pregunta_id, $usuario_id, $es_admin = false) {
+        if ($es_admin) {
+            $sql = "DELETE FROM foro_preguntas WHERE id = ?";
+            $stmt = $conexion->prepare($sql);
+            if ($stmt) {
+                $stmt->bind_param("i", $pregunta_id);
+                $exito = $stmt->execute();
+                $stmt->close();
+                return $exito;
+            }
+            return false;
+        }
+
+        // Solo elimina si es el autor de la pregunta o el creador del curso
+        $sql = "DELETE p FROM foro_preguntas p
+                INNER JOIN cursos c ON p.curso_id = c.id
+                WHERE p.id = ? AND (p.usuario_id = ? OR c.creador_id = ?)";
+        $stmt = $conexion->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("iii", $pregunta_id, $usuario_id, $usuario_id);
+            $exito = $stmt->execute() && $stmt->affected_rows > 0;
+            $stmt->close();
+            return $exito;
+        }
+        return false;
     }
 }
 ?>

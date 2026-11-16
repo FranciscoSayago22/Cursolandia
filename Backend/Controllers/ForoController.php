@@ -38,14 +38,26 @@ elseif (isset($_POST['nueva_respuesta'])) {
     exit();
 }
 
-// 3. ACEPTAR RESPUESTA (Solo el creador del curso puede hacerlo)
+// 3. ACEPTAR RESPUESTA (Educador o autor de la pregunta)
 elseif (isset($_POST['marcar_aceptada'])) {
     $curso_id = intval($_POST['curso_id']);
     $pregunta_id = intval($_POST['pregunta_id']);
     $respuesta_id = intval($_POST['respuesta_id']);
     
-    Foro::aceptarRespuesta($conexion, $respuesta_id, $pregunta_id);
+    Foro::aceptarRespuesta($conexion, $respuesta_id, $pregunta_id, $usuario_id);
     
+    header("Location: ../../Frontend/Views/curso.php?id=" . $curso_id . "#foro");
+    exit();
+}
+
+// 4. ELIMINAR PREGUNTA (Autor de la pregunta, Educador o Admin)
+elseif (isset($_POST['eliminar_pregunta'])) {
+    $curso_id = intval($_POST['curso_id']);
+    $pregunta_id = intval($_POST['pregunta_id']);
+    $es_admin = (isset($_SESSION['plan']) && $_SESSION['plan'] === 'admin');
+
+    Foro::eliminarPregunta($conexion, $pregunta_id, $usuario_id, $es_admin);
+
     header("Location: ../../Frontend/Views/curso.php?id=" . $curso_id . "#foro");
     exit();
 }

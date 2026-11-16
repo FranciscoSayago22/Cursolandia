@@ -174,6 +174,12 @@ include 'includes/encabezado.php';
               ?>
                 <div class="d-flex flex-column gap-3">
                   <?php foreach($preguntas as $p): ?>
+                    <?php
+                      $es_autor_pregunta = (isset($_SESSION['usuario_id']) && $_SESSION['usuario_id'] == $p['usuario_id']);
+                      $es_admin = (isset($_SESSION['plan']) && $_SESSION['plan'] === 'admin');
+                      $puede_marcar_util = ($es_creador || $es_autor_pregunta);
+                      $puede_eliminar_pregunta = ($es_creador || $es_autor_pregunta || $es_admin);
+                    ?>
                     <div class="card shadow-sm border-secondary-subtle">
                       <div class="card-body">
                         
@@ -188,7 +194,19 @@ include 'includes/encabezado.php';
                           <?php if($p['plan'] == 'pro'): ?>
                             <span class="badge text-bg-warning me-2" style="font-size: 0.6rem;">PRO</span>
                           <?php endif; ?>
-                          <small class="text-muted ms-auto"><?php echo date("d/m/Y H:i", strtotime($p['fecha'])); ?></small>
+
+                          <div class="ms-auto d-flex align-items-center gap-2">
+                            <small class="text-muted"><?php echo date("d/m/Y H:i", strtotime($p['fecha'])); ?></small>
+                            <?php if ($puede_eliminar_pregunta): ?>
+                              <form action="../../Backend/Controllers/ForoController.php" method="POST" class="d-inline" onsubmit="return confirm('¿Seguro que deseas eliminar esta pregunta y todas sus respuestas?');">
+                                <input type="hidden" name="curso_id" value="<?php echo $curso['id']; ?>">
+                                <input type="hidden" name="pregunta_id" value="<?php echo $p['id']; ?>">
+                                <button type="submit" name="eliminar_pregunta" class="btn btn-link btn-sm text-danger p-0" title="Eliminar pregunta">
+                                  <i class="bi bi-trash3"></i>
+                                </button>
+                              </form>
+                            <?php endif; ?>
+                          </div>
                         </div>
                         
                         <!-- Texto de la Pregunta -->
@@ -228,8 +246,8 @@ include 'includes/encabezado.php';
                                   
                                   <p class="small mb-1"><?php echo nl2br(htmlspecialchars($r['respuesta'])); ?></p>
                                   
-                                  <!-- Botón Aceptar Respuesta (Solo Creador del Curso) -->
-                                  <?php if($es_creador && !$r['es_aceptada']): ?>
+                                  <!-- Botón Aceptar Respuesta (Creador del Curso o Autor de la Pregunta) -->
+                                  <?php if($puede_marcar_util && !$r['es_aceptada']): ?>
                                     <form action="../../Backend/Controllers/ForoController.php" method="POST" class="d-inline">
                                       <input type="hidden" name="curso_id" value="<?php echo $curso['id']; ?>">
                                       <input type="hidden" name="pregunta_id" value="<?php echo $p['id']; ?>">
