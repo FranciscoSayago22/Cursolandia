@@ -14,6 +14,22 @@ class Inscripcion {
         }
         return 0;
     }
+
+    // Cuenta cuántos alumnos activos tiene un curso específico
+    public static function contarPorCurso($conexion, $curso_id) {
+        $sql = "SELECT COUNT(*) as total FROM inscripciones WHERE curso_id = ? AND estado = 'activa'";
+        $stmt = $conexion->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("i", $curso_id);
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+            $fila = $resultado->fetch_assoc();
+            $stmt->close();
+            return intval($fila['total']);
+        }
+        return 0;
+    }
+    
     // Registra la inscripción
     public static function registrar($conexion, $usuario_id, $curso_id) {
         try {

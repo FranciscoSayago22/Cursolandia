@@ -77,18 +77,58 @@ include 'includes/encabezado.php';
         <div class="row g-4">
           <?php if ($mis_creaciones && $mis_creaciones->num_rows > 0): ?>
             <?php while($curso = $mis_creaciones->fetch_assoc()): ?>
+              <?php 
+                $alumnos = Curso::obtenerAlumnosPorCurso($conexion, $curso['id']);
+                $total_inscritos = count($alumnos);
+              ?>
               <div class="col-md-6 col-lg-4">
                 <div class="card h-100 shadow-sm border-0 bg-body">
-                  <div class="card-body">
-                    <span class="badge bg-primary mb-2">Mis Creaciones</span>
+                  <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="badge bg-primary">Mis Creaciones</span>
+                      <span class="badge bg-secondary-subtle text-secondary-emphasis border">
+                        <i class="bi bi-people-fill me-1"></i>
+                        <?php echo $total_inscritos; ?><?php echo $curso['cupo'] ? ' / ' . $curso['cupo'] : ''; ?> inscriptos
+                      </span>
+                    </div>
+
                     <h5 class="card-title fw-bold"><?php echo htmlspecialchars($curso['titulo']); ?></h5>
                     <p class="small text-muted mb-3">
-                      <i class="bi bi-people-fill me-1"></i>Estado: <?php echo ucfirst($curso['estado']); ?>
+                      <i class="bi bi-eye me-1"></i>Estado: <?php echo ucfirst($curso['estado']); ?>
                     </p>
                     
-                    <a href="curso.php?id=<?php echo $curso['id']; ?>" class="btn btn-outline-secondary w-100 btn-sm fw-medium">
+                    <a href="curso.php?id=<?php echo $curso['id']; ?>" class="btn btn-outline-secondary w-100 btn-sm fw-medium mb-3">
                       <i class="bi bi-pencil-square me-1"></i>Administrar Curso
                     </a>
+
+                    <!-- LISTA DE ALUMNOS INSCRIPTOS (ABAJO) -->
+                    <div class="border-top border-secondary-subtle pt-3 mt-auto">
+                      <h6 class="small fw-bold text-body-secondary mb-2">
+                        <i class="bi bi-person-lines-fill me-1 text-primary"></i>Alumnos inscriptos (<?php echo $total_inscritos; ?>)
+                      </h6>
+
+                      <?php if ($total_inscritos > 0): ?>
+                        <ul class="list-group list-group-flush rounded-3 border border-secondary-subtle" style="max-height: 180px; overflow-y: auto;">
+                          <?php foreach ($alumnos as $alumno): ?>
+                            <li class="list-group-item bg-body-tertiary d-flex align-items-center py-2 px-2">
+                              <?php if (!empty($alumno['imagen_perfil'])): ?>
+                                <img src="../../Resources/Uploads/<?php echo htmlspecialchars($alumno['imagen_perfil']); ?>" alt="Avatar" width="28" height="28" class="rounded-circle object-fit-cover me-2 flex-shrink-0">
+                              <?php else: ?>
+                                <i class="bi bi-person-circle fs-5 text-secondary me-2 flex-shrink-0"></i>
+                              <?php endif; ?>
+                              
+                              <div class="overflow-hidden">
+                                <div class="small fw-semibold text-truncate"><?php echo htmlspecialchars($alumno['nombre_completo']); ?></div>
+                                <div class="text-muted text-truncate" style="font-size: 0.72rem;"><?php echo htmlspecialchars($alumno['email']); ?></div>
+                              </div>
+                            </li>
+                          <?php endforeach; ?>
+                        </ul>
+                      <?php else: ?>
+                        <p class="small text-muted fst-italic mb-0">Todavía no hay alumnos inscriptos.</p>
+                      <?php endif; ?>
+                    </div>
+
                   </div>
                 </div>
               </div>

@@ -150,5 +150,41 @@ class Curso {
         }
         return false;
     }
+
+    // Obtener la lista de alumnos inscritos en un curso específico
+    public static function obtenerAlumnosPorCurso($conexion, $curso_id) {
+        $sql = "SELECT u.id, u.nombre_completo, u.email, u.imagen_perfil, i.fecha_inscripcion 
+                FROM inscripciones i 
+                INNER JOIN usuarios u ON i.usuario_id = u.id 
+                WHERE i.curso_id = ? AND i.estado = 'activa' 
+                ORDER BY i.fecha_inscripcion DESC";
+        $stmt = $conexion->prepare($sql);
+        $alumnos = [];
+        if ($stmt) {
+            $stmt->bind_param("i", $curso_id);
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+            while ($fila = $resultado->fetch_assoc()) {
+                $alumnos[] = $fila;
+            }
+            $stmt->close();
+        }
+        return $alumnos;
+    }
+
+    // Cuenta cuántos cursos ha creado un usuario específico
+    public static function contarPorCreador($conexion, $creador_id) {
+        $sql = "SELECT COUNT(*) as total FROM cursos WHERE creador_id = ?";
+        $stmt = $conexion->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("i", $creador_id);
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+            $fila = $resultado->fetch_assoc();
+            $stmt->close();
+            return intval($fila['total']);
+        }
+        return 0;
+    }
 }
 ?>

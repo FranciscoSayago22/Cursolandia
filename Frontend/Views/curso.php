@@ -2,6 +2,7 @@
 session_start();
 require_once '../../Backend/Config/database.php';
 require_once '../../Backend/Models/Foro.php';
+require_once '../../Backend/Models/Inscripcion.php';
 
 // Si no mandan un ID por URL, los devolvemos al inicio
 if (!isset($_GET['id'])) {
@@ -30,6 +31,7 @@ if ($resultado->num_rows === 0) {
 }
 $curso = $resultado->fetch_assoc();
 $stmt->close();
+
 $es_creador = (isset($_SESSION['usuario_id']) && $_SESSION['usuario_id'] == $curso['creador_id']);
 $esta_inscrito = false;
 
@@ -45,7 +47,8 @@ if (isset($_SESSION['usuario_id']) && !$es_creador) {
 }
 
 $tiene_acceso = ($es_creador || $esta_inscrito);
-
+$inscritos_actuales = Inscripcion::contarPorCurso($conexion, $curso_id);
+$sin_cupo = ($curso['cupo'] !== null && $inscritos_actuales >= intval($curso['cupo']));
 
 $materiales = [];
 if ($tiene_acceso) {
@@ -90,6 +93,14 @@ include 'includes/encabezado.php';
     </div>
     <?php endif; ?>
 
+    <!-- PARTE B: Alerta de curso sin cupo -->
+    <?php if(isset($_GET['error']) && $_GET['error'] == 'sin_cupo'): ?>
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+      <i class="bi bi-people-fill me-2"></i><strong>Sin cupo disponible.</strong> Este curso ya alcanzó su límite máximo de alumnos.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+
     <div class="row g-4">
       <div class="col-lg-8">
         <div class="card shadow-sm border-0 rounded-4 mb-4">
@@ -114,7 +125,18 @@ include 'includes/encabezado.php';
             <ul class="list-unstyled mb-4">
               <li class="mb-2"><i class="bi bi-calendar-check text-primary me-2"></i><strong>Inicio:</strong> <?php echo date("d/m/Y", strtotime($curso['fecha_inicio'])); ?></li>
               <li class="mb-2"><i class="bi bi-calendar-x text-primary me-2"></i><strong>Finalización:</strong> <?php echo date("d/m/Y", strtotime($curso['fecha_fin'])); ?></li>
-              <li><i class="bi bi-people-fill text-primary me-2"></i><strong>Cupo Máximo:</strong> <?php echo $curso['cupo'] ? $curso['cupo'] . ' alumnos' : 'Sin límite'; ?></li>
+              <!-- PARTE C (1/2): Detalle de cupos ocupados -->
+              <li>
+                <i class="bi bi-people-fill text-primary me-2"></i><strong>Cupo Máximo:</strong> 
+                <?php if ($curso['cupo']): ?>
+                  <?php echo $curso['cupo'] . ' alumnos'; ?>
+                  <span class="badge <?php echo $sin_cupo ? 'bg-danger' : 'bg-secondary'; ?> ms-1">
+                    <?php echo $sin_cupo ? 'Cupo completo' : $inscritos_actuales . ' / ' . $curso['cupo'] . ' ocupados'; ?>
+                  </span>
+                <?php else: ?>
+                  Sin límite
+                <?php endif; ?>
+              </li>
             </ul>
 
             <!-- MÓDULO MATERIAL DE ESTUDIO -->
@@ -133,7 +155,6 @@ include 'includes/encabezado.php';
                 <p class="text-muted">El creador aún no ha subido material a este curso.</p>
               <?php endif; ?>
 
-              <!-- FORO DE DISCUSIÓN -->
               <!-- FORO DE DISCUSIÓN -->
               <h5 id="foro" class="fw-bold border-bottom border-secondary-subtle pb-2 mb-3 mt-5">Foro de Discusión</h5>
               
@@ -171,7 +192,7 @@ include 'includes/encabezado.php';
                         </div>
                         
                         <!-- Texto de la Pregunta -->
-                        <p class="mb-3 fw-medium "><?php echo nl2br(htmlspecialchars($p['pregunta'])); ?></p>
+                        <p class="mb-3 fw-medium"><?php echo nl2br(htmlspecialchars($p['pregunta'])); ?></p>
 
                         <!-- MÓDULO DE RESPUESTAS -->
                         <?php 
@@ -244,6 +265,8 @@ include 'includes/encabezado.php';
                   Aún no hay preguntas. ¡Sé el primero en iniciar un debate!
                 </div>
               <?php endif; ?>
+
+            <?php else: ?>
               <div class="alert alert-light border shadow-sm mt-5 text-center p-4">
                 <i class="bi bi-lock-fill fs-1 text-secondary mb-2"></i>
                 <h5 class="fw-bold">Contenido Bloqueado</h5>
@@ -263,11 +286,14 @@ include 'includes/encabezado.php';
               <?php echo $curso['costo'] == 0 ? '¡Curso Gratuito!' : '$' . number_format($curso['costo'], 2, ',', '.'); ?>
             </h4>
             
+            <!-- PARTE C (2/2): Botón bloqueado si no hay cupo -->
             <?php if (isset($_SESSION['usuario_id'])): ?>
                 <?php if ($es_creador): ?>
                     <button class="btn btn-secondary w-100 btn-lg fw-bold mb-2" disabled>Eres el Creador</button>
                 <?php elseif ($esta_inscrito): ?>
                     <button class="btn btn-success w-100 btn-lg fw-bold mb-2" disabled><i class="bi bi-check-lg me-2"></i>Inscrito</button>
+                <?php elseif ($sin_cupo): ?>
+                    <button class="btn btn-danger w-100 btn-lg fw-bold mb-2" disabled><i class="bi bi-x-circle me-2"></i>Sin Cupo Disponible</button>
                 <?php else: ?>
                     <form action="../../Backend/Controllers/InscripcionController.php" method="POST">
                         <input type="hidden" name="curso_id" value="<?php echo $curso['id']; ?>">

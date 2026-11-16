@@ -16,6 +16,27 @@ $es_pro = (isset($_SESSION['plan']) && ($_SESSION['plan'] === 'pro' || $_SESSION
 $db = new Conexion();
 $conexion = $db->conectar();
 
+// 1. Verificar si el curso existe y si tiene cupo máximo disponible
+$sql_curso = "SELECT cupo, creador_id FROM cursos WHERE id = ?";
+$stmt_curso = $conexion->prepare($sql_curso);
+$stmt_curso->bind_param("i", $curso_id);
+$stmt_curso->execute();
+$datos_curso = $stmt_curso->get_result()->fetch_assoc();
+$stmt_curso->close();
+
+if (!$datos_curso || $datos_curso['creador_id'] == $usuario_id) {
+    header("Location: ../../Frontend/Views/index.php");
+    exit();
+}
+
+if ($datos_curso['cupo'] !== null) {
+    $inscritos_actuales = Inscripcion::contarPorCurso($conexion, $curso_id);
+    if ($inscritos_actuales >= intval($datos_curso['cupo'])) {
+        header("Location: ../../Frontend/Views/curso.php?id=" . $curso_id . "&error=sin_cupo");
+        exit();
+    }
+}
+
 // REGLA DE NEGOCIO: Si es plan gratuito, no puede tener más de 3 cursos activos
 if (!$es_pro) {
     $cursos_activos = Inscripcion::contarActivas($conexion, $usuario_id);
