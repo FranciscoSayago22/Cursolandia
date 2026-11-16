@@ -11,6 +11,21 @@ if (!isset($_SESSION['usuario_id']) || !isset($_POST['crear_curso'])) {
 $creador_id = $_SESSION['usuario_id'];
 $es_pro = (isset($_SESSION['plan']) && ($_SESSION['plan'] === 'pro' || $_SESSION['plan'] === 'admin'));
 
+$creador_id = $_SESSION['usuario_id'];
+$es_pro = (isset($_SESSION['plan']) && ($_SESSION['plan'] === 'pro' || $_SESSION['plan'] === 'admin'));
+// Conexión a la base de datos
+$db = new Conexion();
+$conexion = $db->conectar();
+
+// REGLA DE NEGOCIO: Usuario gratis máximo 3 cursos creados
+if (!$es_pro) {
+    $cursos_creados = Curso::contarPorCreador($conexion, $creador_id);
+    if ($cursos_creados >= 3) {
+        header("Location: ../../Frontend/Views/crear_curso.php?error=limite_creacion");
+        exit();
+    }
+}
+
 // 1. Recibir datos del formulario
 $titulo = trim($_POST['titulo']);
 $descripcion = trim($_POST['descripcion']);
@@ -86,9 +101,6 @@ if (isset($_FILES['material_curso']) && $_FILES['material_curso']['name'][0] != 
     }
 }
 
-// 3. Conexión a la BD e inserción
-$db = new Conexion();
-$conexion = $db->conectar();
 
 // Llamamos al Modelo Transaccional
 $exito = Curso::crear($conexion, $creador_id, $titulo, $descripcion, $costo, $cupo, $fecha_inicio, $fecha_fin, $estado, $etiquetas, $archivos_validados);

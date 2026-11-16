@@ -1,14 +1,24 @@
 <?php
 session_start();
-// PROTECCIÓN: Solo usuarios logueados pueden crear cursos
+// si el usuario no está logueado, lo redirigimos al login
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit();
 }
 
+require_once '../../Backend/Config/database.php';
+require_once '../../Backend/Models/Curso.php';
+
+$db = new Conexion();
+$conexion = $db->conectar();
+
 $es_pro = (isset($_SESSION['plan']) && ($_SESSION['plan'] === 'pro' || $_SESSION['plan'] === 'admin'));
+$cursos_creados = Curso::contarPorCreador($conexion, $_SESSION['usuario_id']);
+$limite_alcanzado = (!$es_pro && $cursos_creados >= 3);
+
 date_default_timezone_set('America/Argentina/Buenos_Aires');
 $hoy = date('Y-m-d');
+
 $clase_body = "d-flex flex-column min-vh-100 bg-body-secondary";
 include 'includes/encabezado.php'; 
 ?>
@@ -31,6 +41,27 @@ include 'includes/encabezado.php';
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
             <?php endif; ?>
+
+            <?php if ($limite_alcanzado || (isset($_GET['error']) && $_GET['error'] === 'limite_creacion')): ?>
+              <div class="alert alert-danger shadow-sm mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Límite de creación alcanzado (3/3).</strong> Con el Plan Gratuito solo puedes crear hasta 3 cursos. 
+                <a href="perfil.php" class="alert-link">Solicita el Plan PRO</a> para publicar cursos sin límite.
+              </div>
+            <?php elseif (!$es_pro): ?>
+              <div class="alert alert-info py-2 shadow-sm mb-4">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                Plan Gratuito: llevas <strong><?php echo $cursos_creados; ?> de 3</strong> cursos creados.
+              </div>
+            <?php endif; ?>
+
+            <form action="../../Backend/Controllers/CursoController.php" method="POST" enctype="multipart/form-data">
+              <fieldset <?php echo $limite_alcanzado ? 'disabled' : ''; ?>>
+                
+                
+
+              </fieldset>
+            </form>
             <form action="../../Backend/Controllers/CursoController.php" method="POST" enctype="multipart/form-data">
               
               <!-- SECCIÓN 1: Información Básica -->
